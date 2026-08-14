@@ -1,17 +1,14 @@
 import { Menu, Bell } from "lucide-react";
-import { useState } from "react";
 
-export default function Header() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+interface HeaderProps {
+  onMenuClick: () => void;
+}
 
+export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4 sm:px-6">
       <button
-        onClick={() => {
-          window.dispatchEvent(
-            new CustomEvent("toggle-sidebar"),
-          );
-        }}
+        onClick={onMenuClick}
         className="rounded-lg p-2 hover:bg-slate-100 lg:hidden"
       >
         <Menu className="h-5 w-5" />
