@@ -1,0 +1,53 @@
+[
+  {
+    "id": "STU-2026-00125",
+    "name": "Arun Kumar",
+    "photo": "",
+    "mobile": "9876543210",
+    "email": "arun.kumar@example.com",
+    "dateOfBirth": "2002-05-14",
+    "gender": "Male",
+    "address": "Chennai, Tamil Nadu",
+    "qualification": "B.Tech",
+    "course": "Full Stack Development",
+    "courseDuration": "6 Months",
+    "joiningDate": "2026-04-10",
+    "batch": "FS-APR-01",
+    "mode": "Offline",
+    "assignedCounsellor": "Priya"
+  },
+  {
+    "id": "STU-2026-00126",
+    "name": "Divya Raj",
+    "photo": "",
+    "mobile": "9876543211",
+    "email": "divya.raj@example.com",
+    "dateOfBirth": "2001-09-22",
+    "gender": "Female",
+    "address": "Coimbatore, Tamil Nadu",
+    "qualification": "B.Sc Computer Science",
+    "course": "Full Stack Development",
+    "courseDuration": "6 Months",
+    "joiningDate": "2026-04-12",
+    "batch": "FS-APR-01",
+    "mode": "Online",
+    "assignedCounsellor": "Rahul"
+  },
+  {
+    "id": "STU-2026-00127",
+    "name": "Karthik S",
+    "photo": "",
+    "mobile": "9876543212",
+    "email": "karthik.s@example.com",
+    "dateOfBirth": "2000-11-03",
+    "gender": "Male",
+    "address": "Madurai, Tamil Nadu",
+    "qualification": "BCA",
+    "course": "Java Development",
+    "courseDuration": "5 Months",
+    "joiningDate": "2026-05-02",
+    "batch": "JAVA-MAY-01",
+    "mode": "Offline",
+    "assignedCounsellor": "Priya"
+  }
+]
