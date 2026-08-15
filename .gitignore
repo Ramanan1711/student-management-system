@@ -27,3 +27,6 @@ memory/test_credentials.md
 *.pem
 *.key
 .credentials
+.env
+.env.*
+*.env
