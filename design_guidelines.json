@@ -1,0 +1,70 @@
+{
+  "app_name": "Valence Institute & Academy Student Management System",
+  "app_type": "dashboard",
+  "theme_strategy": {
+    "archetype": "ORGANIC & EARTHY / PERFORMANCE PRO HYBRID",
+    "mode": "light and dark with executive navy accent",
+    "primary_color": "#0F172A",
+    "accent_color": "#2563EB",
+    "surface_color": "#F8FAFC"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Outfit, sans-serif",
+      "weights": ["600", "700"],
+      "letter_spacing": "tracking-tight"
+    },
+    "body": {
+      "font_family": "Inter, sans-serif",
+      "weights": ["400", "500"]
+    }
+  },
+  "colors": {
+    "background": "#F8FAFC",
+    "sidebar": "#0A1128",
+    "card": "#FFFFFF",
+    "text_primary": "#0F172A",
+    "text_secondary": "#64748B",
+    "border": "#E2E8F0",
+    "accent": "#2563EB",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "danger": "#EF4444"
+  },
+  "components_specification": {
+    "sidebar": "Fixed two-column navigation with deep blue background (#0A1128), collapsible items, badges for unread tasks/walk-ins, role switcher (Admin, Trainer, Student)",
+    "header": "Sticky glassmorphism header with global search, notifications popover, quick add modal trigger, and user profile avatar",
+    "dashboard_kpis": "4 executive overview cards with sparklines, percentage changes, and icon badges",
+    "revenue_chart": "Responsive vertical bar/line chart with 12M / 6M / 30D timeframe filter controls",
+    "tables": "Searchable, sortable, filterable tables with pagination and action menus for students, walk-ins, and batches",
+    "modals_offcanvas": "Drawer and dialog components for Walk-in capture, Student registration, Admission & Fee tracking, and Batch allocation",
+    "student_profile": "Comprehensive multi-tab profile (Overview, Attendance, Fee Ledger, Performance, Video Records, Reports)"
+  },
+  "image_urls": [
+    {
+      "category": "student_avatar_1",
+      "url": "https://images.unsplash.com/photo-1654110455429-cf322b40a906?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwcG9ydHJhaXQlMjBhdmF0YXJ8ZW58MHx8fHwxNzg2NzE3MjQyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Student portrait for profile"
+    },
+    {
+      "category": "student_avatar_2",
+      "url": "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwzfHxzdHVkZW50JTIwcG9ydHJhaXQlMjBhdmF0YXJ8ZW58MHx8fHwxNzg2NzE3MjQyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Student portrait for list"
+    },
+    {
+      "category": "campus_hero",
+      "url": "https://images.unsplash.com/photo-1576495199011-eb94736d05d6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwyfHxjYW1wdXMlMjBidWlsZGluZyUyMGFjYWRlbXl8ZW58MHx8fHwxNzg2NzE3MjQ2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Academy campus building"
+    }
+  ],
+  "accessibility_requirements": {
+    "apca_contrast": "Minimum 4.5:1 for normal text, 3:1 for large text",
+    "interactive_states": "Explicit hover:text-white and focus:ring-2 on all buttons and inputs",
+    "data_testid": "Mandatory on all interactive buttons, links, form fields, and status badges"
+  },
+  "universal_guidelines_for_main_agent": [
+    "Do not use transparent backgrounds for dropdowns or modals without proper blur or solid backing",
+    "Ensure all interactive elements have data-testid attributes",
+    "Maintain high contrast and clean spacing throughout the dashboard"
+  ]
+}
