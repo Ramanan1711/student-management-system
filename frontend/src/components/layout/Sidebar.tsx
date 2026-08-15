@@ -55,7 +55,7 @@ export default function Sidebar({ open = true, onClose }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-[#0a1128] text-white transition-transform lg:static lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-[260px] flex-col bg-[#0a1128] text-white transition-transform lg:static lg:h-[calc(100vh-2rem)] lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-[110px] items-center justify-between border-b border-white/10 px-5">
           <div>
@@ -74,7 +74,7 @@ export default function Sidebar({ open = true, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
+        <nav className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-4">
           <div className="mb-2 px-2">
             <NavLink data-testid="sidebar-link-main-dashboard" to="/dashboard" onClick={onClose} className={({ isActive }) => `flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold text-white shadow-sm ring-1 ring-white/10 ${isActive ? "bg-white/10" : "hover:bg-white/10"}`}>
               <LayoutDashboard className="h-4 w-4" />
@@ -107,7 +107,7 @@ export default function Sidebar({ open = true, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <div className="space-y-4 border-t border-white/10 p-4">
+        <div className="mt-auto space-y-4 border-t border-white/10 p-4">
           <button data-testid="sidebar-logout-button" onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/15">
             <LogOut className="h-4 w-4" />
             Logout
