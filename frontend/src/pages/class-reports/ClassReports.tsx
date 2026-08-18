@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { useDataStore } from "../../store/DataStore";
+import { useDataStore } from "../../store/dataStoreContext";
 
 export default function ClassReports() {
   const { classReports } = useDataStore();

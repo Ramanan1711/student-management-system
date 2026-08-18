@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 
-import { useDataStore } from "../../../store/DataStore";
+import { useDataStore } from "../../../store/dataStoreContext";
 
 interface SearchResult {
   key: string;

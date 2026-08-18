@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
 
-import { useDataStore } from "../../../store/DataStore";
+import { useDataStore } from "../../../store/dataStoreContext";
 
 export default function NotificationCenter() {
   const { notifications, dismissNotification } = useDataStore();

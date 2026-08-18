@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { useDataStore } from "../../store/DataStore";
-import { useToast } from "../../components/ui/Toast";
+import { useDataStore } from "../../store/dataStoreContext";
+import { useToast } from "../../components/ui/toastContext";
 import type { StudentRecord } from "../../data/mockData";
 
 const currency = new Intl.NumberFormat("en-IN", {

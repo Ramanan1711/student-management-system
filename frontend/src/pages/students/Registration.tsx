@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDataStore } from "../../store/DataStore";
-import { useToast } from "../../components/ui/Toast";
+import { useDataStore } from "../../store/dataStoreContext";
+import { useToast } from "../../components/ui/toastContext";
 import type { StudentRecord } from "../../data/mockData";
 
 type NewStudent = Omit<StudentRecord, "id" | "photo">;

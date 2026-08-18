@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useDataStore } from "../../store/DataStore";
+import { useDataStore } from "../../store/dataStoreContext";
 
 type Metric = "overallPerformance" | "technicalKnowledge" | "practicalSkills" | "communication" | "attendance" | "taskCompletion" | "behaviour";
 

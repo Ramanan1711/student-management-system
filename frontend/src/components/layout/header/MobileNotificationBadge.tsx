@@ -1,6 +1,6 @@
 import { Bell } from "lucide-react";
 
-import { useDataStore } from "../../../store/DataStore";
+import { useDataStore } from "../../../store/dataStoreContext";
 
 export default function MobileNotificationBadge() {
   const { notifications } = useDataStore();

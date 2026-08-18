@@ -1,11 +1,15 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+
+import {
+  DataStoreContext,
+  type DataStoreValue,
+  type NotificationItem,
+} from "./dataStoreContext";
 
 import {
   walkinLeads as seedWalkins,
@@ -21,41 +25,6 @@ import {
   type ClassReportRecord,
   type TaskRecord,
 } from "../data/mockData";
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-}
-
-interface DataStoreValue {
-  walkins: WalkinLead[];
-  students: StudentRecord[];
-  batches: BatchRecord[];
-  employees: EmployeeRecord[];
-  classReports: ClassReportRecord[];
-  tasks: TaskRecord[];
-
-  addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
-  addStudent: (student: Omit<StudentRecord, "id" | "photo">) => StudentRecord;
-  updateStudent: (id: string, patch: Partial<StudentRecord>) => void;
-  updateStudentFee: (id: string, patch: Partial<StudentRecord["fee"]>) => void;
-  addBatch: (batch: Omit<BatchRecord, "id">) => BatchRecord;
-  addEmployee: (employee: Omit<EmployeeRecord, "id">) => EmployeeRecord;
-  addTask: (task: Omit<TaskRecord, "id">) => TaskRecord;
-  updateTaskStatus: (id: string, status: TaskRecord["status"]) => void;
-  addClassReport: (report: Omit<ClassReportRecord, "id">) => ClassReportRecord;
-  markAttendance: (
-    studentId: string,
-    status: "Present" | "Absent" | "Leave",
-  ) => void;
-
-  notifications: NotificationItem[];
-  dismissNotification: (id: string) => void;
-}
-
-const DataStoreContext = createContext<DataStoreValue | null>(null);
 
 const makeId = (prefix: string, count: number, pad = 3) =>
   `${prefix}-${new Date().getFullYear()}-${String(count).padStart(pad, "0")}`;
@@ -306,10 +275,4 @@ export function DataProvider({ children }: { children: ReactNode }) {
       {children}
     </DataStoreContext.Provider>
   );
-}
-
-export function useDataStore() {
-  const ctx = useContext(DataStoreContext);
-  if (!ctx) throw new Error("useDataStore must be used within a DataProvider");
-  return ctx;
 }

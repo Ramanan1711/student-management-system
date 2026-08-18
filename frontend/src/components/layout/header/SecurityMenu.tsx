@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ShieldCheck } from "lucide-react";
 
-import { useToast } from "../../ui/Toast";
+import { useToast } from "../../ui/toastContext";
 
 export default function SecurityMenu() {
   const { showToast } = useToast();

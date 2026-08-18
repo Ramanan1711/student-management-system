@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BriefcaseBusiness, ChartColumnBig, TrendingUp, Users } from "lucide-react";
-import { useDataStore } from "../../store/DataStore";
+import { useDataStore } from "../../store/dataStoreContext";
 
 const revenueOverview = [
   { month: "JAN", value: 48 },

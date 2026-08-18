@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { useDataStore } from "../../store/DataStore";
+import { useDataStore } from "../../store/dataStoreContext";
 
 export default function StudentProfile() {
   const { studentId } = useParams();

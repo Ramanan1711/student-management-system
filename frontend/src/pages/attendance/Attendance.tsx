@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useDataStore } from "../../store/DataStore";
-import { useToast } from "../../components/ui/Toast";
+import { useDataStore } from "../../store/dataStoreContext";
+import { useToast } from "../../components/ui/toastContext";
 
 type AttendanceMark = "Present" | "Absent" | "Leave";
 
