@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BriefcaseBusiness, ChartColumnBig, TrendingUp, Users } from "lucide-react";
+import { useDataStore } from "../../store/DataStore";
 
 const revenueOverview = [
   { month: "JAN", value: 48 },
@@ -17,21 +19,74 @@ const revenueOverview = [
   { month: "DEC", value: 60 },
 ];
 
-const activityRows = [
-  { id: "#TR-92410", name: "Student Name", role: "Student", status: "Completed", amount: "Rs.12,450.00" },
-  { id: "#TR-92388", name: "Client Name", role: "Client", status: "Pending", amount: "Rs.8,200.00" },
-];
-
-const stats = [
-  { label: "TOTAL GROWTH", value: "Rs.42,50,900", icon: ChartColumnBig, color: "#f5f0df", trend: "+12.5%" },
-  { label: "ACTIVE STUDENTS", value: "84,322", icon: Users, color: "#f2efe9", trend: "+5.2%" },
-  { label: "MONTHLY GROWTH", value: "Rs.2,00,000", icon: TrendingUp, color: "#f3eee5", trend: "+8.1%" },
-  { label: "ACTIVE CLIENTS", value: "1,248", icon: BriefcaseBusiness, color: "#f4f1ea", trend: "+18.4%" },
-];
-
 export default function Dashboard() {
+  const { students, walkins, batches, tasks } = useDataStore();
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<"12 Months" | "6 Months" | "30 Days">("12 Months");
-  const chartData = useMemo(() => period === "12 Months" ? revenueOverview : period === "6 Months" ? revenueOverview.slice(6) : revenueOverview.slice(9), [period]);
+
+  const chartData = useMemo(
+    () =>
+      period === "12 Months"
+        ? revenueOverview
+        : period === "6 Months"
+        ? revenueOverview.slice(6)
+        : revenueOverview.slice(9),
+    [period],
+  );
+
+  const totalPending = students.reduce((sum, s) => sum + s.fee.pendingAmount, 0);
+  const totalPaid = students.reduce((sum, s) => sum + s.fee.amountPaid, 0);
+
+  const stats = [
+    {
+      label: "TOTAL REVENUE",
+      value: `₹${totalPaid.toLocaleString("en-IN")}`,
+      icon: ChartColumnBig,
+      color: "#f5f0df",
+      trend: "+12.5%",
+    },
+    {
+      label: "ACTIVE STUDENTS",
+      value: String(students.length),
+      icon: Users,
+      color: "#f2efe9",
+      trend: "+5.2%",
+    },
+    {
+      label: "PENDING FEES",
+      value: `₹${totalPending.toLocaleString("en-IN")}`,
+      icon: TrendingUp,
+      color: "#f3eee5",
+      trend: "-8.1%",
+    },
+    {
+      label: "ACTIVE BATCHES",
+      value: String(batches.length),
+      icon: BriefcaseBusiness,
+      color: "#f4f1ea",
+      trend: `${walkins.length} leads`,
+    },
+  ];
+
+  const recentActivity = useMemo(
+    () => [
+      ...walkins.slice(0, 3).map((lead) => ({
+        id: lead.id,
+        name: lead.studentName,
+        role: `Walk-in · ${lead.courseInterested}`,
+        status: lead.leadStatus,
+        amount: lead.followUpDate,
+      })),
+      ...tasks.slice(0, 2).map((task) => ({
+        id: task.id,
+        name: task.title,
+        role: `Task · ${task.priority}`,
+        status: task.status,
+        amount: task.dueDate,
+      })),
+    ],
+    [walkins, tasks],
+  );
 
   return (
     <div data-testid="dashboard-page" className="space-y-6">
@@ -62,7 +117,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600">
-            {(["12 Months", "6 Months", "30 Days"] as const).map((option) => <button key={option} data-testid={`revenue-filter-${option.toLowerCase().replaceAll(" ", "-")}`} onClick={() => setPeriod(option)} className={`rounded-full px-2 py-1 ${period === option ? "bg-slate-900 text-white" : "hover:bg-slate-100"}`}>{option}</button>)}
+            {(["12 Months", "6 Months", "30 Days"] as const).map((option) => <button type="button" key={option} data-testid={`revenue-filter-${option.toLowerCase().replaceAll(" ", "-")}`} onClick={() => setPeriod(option)} className={`rounded-full px-2 py-1 ${period === option ? "bg-slate-900 text-white" : "hover:bg-slate-100"}`}>{option}</button>)}
           </div>
         </div>
 
@@ -90,22 +145,32 @@ export default function Dashboard() {
       <div data-testid="recent-activity-card" className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[16px] font-semibold text-slate-800">Recent Activity</h2>
-          <button data-testid="recent-activity-view-all" className="text-sm font-medium text-blue-700 hover:text-blue-900">View All</button>
+          <button
+            type="button"
+            data-testid="recent-activity-view-all"
+            onClick={() => navigate("/reports")}
+            className="text-sm font-medium text-blue-700 hover:text-blue-900"
+          >
+            View All
+          </button>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[#f8f8f6] text-[11px] uppercase tracking-[0.16em] text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Transaction ID</th>
+                <th className="px-4 py-3 font-medium">ID</th>
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Role</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 text-right font-medium">Amount</th>
+                <th className="px-4 py-3 text-right font-medium">Date</th>
               </tr>
             </thead>
             <tbody>
-              {activityRows.map((row) => (
+              {recentActivity.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">No recent activity yet.</td></tr>
+              )}
+              {recentActivity.map((row) => (
                 <tr key={row.id} className="border-t border-slate-200">
                   <td className="px-4 py-4 font-medium text-slate-700">{row.id}</td>
                   <td className="px-4 py-4">
@@ -118,7 +183,7 @@ export default function Dashboard() {
                   </td>
                   <td className="px-4 py-4 text-slate-600">{row.role}</td>
                   <td className="px-4 py-4">
-                    <span data-testid={`activity-status-${row.id.replace("#", "")}`} className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${row.status === "Completed" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                    <span data-testid={`activity-status-${row.id}`} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">
                       {row.status}
                     </span>
                   </td>

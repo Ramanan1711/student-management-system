@@ -1,0 +1,66 @@
+{
+  "summary": "Full frontend audit of the Vite+React Student Management System. Login/sidebar nav/logout/mobile hamburger all work. Students search & profile-navigation via 'View profile' Link works. Registration, Walk-in and Batch create forms validate required fields and add rows. Dashboard revenue period filter works. Employees type filter works. NO console errors on any route. However, several requested interactions are NOT implemented at all (dead buttons/missing features on Header, Dashboard 'View All', Tasks, Attendance, Reports, Class Reports, Performance) and some search/create controls listed in the requirements are missing (Batches search, Admissions search, Employees search, Employees create).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Header", "issue": "Notification bell button has no onClick handler - dead control", "selector": "[data-testid='header-notifications-button']", "priority": "MEDIUM"},
+      {"component": "Header", "issue": "Security shield button has no onClick handler - dead control", "selector": "[data-testid='header-security-button']", "priority": "MEDIUM"},
+      {"component": "Header", "issue": "Global 'Search analytics...' input has no onChange/state - dead search; either wire it up or remove", "selector": "[data-testid='global-search-input']", "priority": "MEDIUM"},
+      {"component": "Header", "issue": "Title is hardcoded 'Executive Overview' on every route; should reflect the active page (Students, Walk-ins, etc.)", "selector": "header h1", "priority": "MEDIUM"},
+      {"component": "Dashboard - Recent Activity", "issue": "'View All' button has no onClick - dead button, does not navigate or open any panel", "selector": "[data-testid='recent-activity-view-all']", "priority": "MEDIUM"},
+      {"component": "Tasks page", "issue": "No 'Create task' button, no 'Mark complete' action and no filter controls. Page is a static read-only table. Requirement explicitly asks for create/complete/filter.", "selector": "[data-testid='tasks-page']", "priority": "HIGH"},
+      {"component": "Attendance page", "issue": "No way to mark attendance; page only displays static stats and a read-only per-student table. Requirement explicitly asks 'mark attendance and see it saved'.", "selector": "[data-testid='attendance-page']", "priority": "HIGH"},
+      {"component": "Reports page", "issue": "No filters and no Export/Print buttons at all. Requirement asks for filters + at least a toast feedback on export/print.", "selector": "[data-testid='reports-page']", "priority": "MEDIUM"},
+      {"component": "Class Reports page", "issue": "No filters or drill-down; entirely static table. Requirement asks filters to work.", "selector": "[data-testid='class-reports-page']", "priority": "MEDIUM"},
+      {"component": "Performance page", "issue": "No filters, no drill-down interactions; only a chart + static table. Requirement asks 'filters and drill-down work'.", "selector": "[data-testid='performance-page']", "priority": "HIGH"},
+      {"component": "Batches page", "issue": "No search input for batches. Requirement lists Batches under 'Search inputs must filter visible rows'.", "selector": "[data-testid='batches-page']", "priority": "MEDIUM"},
+      {"component": "Admissions page", "issue": "No search input for the student fee ledger. Requirement lists Admissions under search-filter list.", "selector": "[data-testid='admissions-page']", "priority": "MEDIUM"},
+      {"component": "Employees page", "issue": "No search input and no 'Create employee' form. Requirement lists Employees search + Employee create.", "selector": "[data-testid='employees-page']", "priority": "MEDIUM"},
+      {"component": "Admissions fee edit", "issue": "Pending Amount is editable independently of Final Fee - Amount Paid. Typing '1' directly into pending saves 1 while final/paid stay unchanged, allowing inconsistent ledger totals. Field should be derived/read-only or recalculated.", "selector": "[data-testid='fee-update-card'] input[type='number']:nth-of-type(5)", "priority": "MEDIUM"},
+      {"component": "StudentsList rows", "issue": "Row itself is not clickable; only the small 'View profile' pill navigates. Making the whole row a link would match the requirement 'clicking a student in the students list opens the profile'.", "selector": "[data-testid='students-table-body'] tr", "priority": "LOW"},
+      {"component": "Registration -> Students", "issue": "Newly registered students do NOT appear in Students / Attendance / Admissions / Performance because each page keeps its own local copy of the mock array (imported by value). There is no shared store; created records are effectively orphaned.", "selector": "[data-testid='registration-form']", "priority": "HIGH"},
+      {"component": "Walkins -> global list", "issue": "Same as above: new walk-ins added via the form only live in Walkins page state and are lost on route change.", "selector": "[data-testid='walkin-form']", "priority": "MEDIUM"},
+      {"component": "Batches -> global list", "issue": "Same as above: created batches don't propagate to Registration batch selector or Students batch field.", "selector": "[data-testid='batch-form']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Create anywhere -> appear elsewhere", "issue": "Because each page imports the mock array by reference and stores its own useState copy, additions from Registration/Walkins/Batches never appear in the other consumer pages. Needs a shared Context/store or lifted state.", "affected_selectors": ["[data-testid='registration-form']", "[data-testid='walkin-form']", "[data-testid='batch-form']", "[data-testid='students-table-body']"]}
+    ],
+    "design_issues": [
+      {"screen": "Header (all pages)", "issues": ["Static 'Executive Overview' title never changes with route, misleading breadcrumb-like affordance"]},
+      {"screen": "Walkins", "issues": ["Add-enquiry form is permanently in the right column instead of behind a button; on smaller screens this pushes the pipeline table below the fold"]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json"],
+  "action_items": [
+    "Wire up or remove header controls: notifications bell, security shield, and 'Search analytics' input.",
+    "Make header H1 dynamic per route (Executive Overview only on /dashboard).",
+    "Add onClick/navigation to Dashboard 'View All' button in Recent Activity (or remove it).",
+    "Implement Tasks page interactions: create task form, mark-complete toggle, priority/status filter.",
+    "Implement Attendance marking (per student per date) that saves to state and updates the stats/table.",
+    "Add filters and Export/Print (with a toast) to Reports page.",
+    "Add filters/drill-down to Performance and Class Reports pages.",
+    "Add search input to Batches, Admissions, and Employees pages (per requirement list).",
+    "Add 'Create employee' form on Employees page.",
+    "Make Admissions Pending Amount derived (finalFee - amountPaid) and read-only, or auto-recalculate on any change of finalFee/amountPaid/discount/courseFee.",
+    "Introduce a shared data store (Context/Zustand/Redux) so Registration/Walkin/Batch creates propagate to Students/Attendance/Admissions/Performance.",
+    "Make the entire student row in Students list a link to /students/:id (in addition to the 'View profile' button).",
+    "Move 'Add new enquiry' walkin form behind a button/dialog to avoid always-visible clutter."
+  ],
+  "critical_code_review_comments": [
+    "Header.tsx: notification, shield and search input are visual-only - either implement or remove to avoid dead affordances.",
+    "AppLayout.tsx: header title is not driven by route; either compute from useLocation or accept a prop.",
+    "Admissions.tsx updateSelected(): allows arbitrary pending edit and does not derive pending consistently across all four fields.",
+    "Registration.tsx / Walkins.tsx / Batches.tsx each seed their own local useState copy of the imported mock arrays - no cross-page persistence. Create a shared data provider.",
+    "Tasks/Attendance/Reports/ClassReports/Performance pages have zero interactive elements despite feature requirements calling for filters, create, mark-complete, export, drill-down.",
+    "Login.tsx / demo auth is client-side only (localStorage.auth='true'); acceptable for demo but should be documented.",
+    "Data-testid coverage is good on most CRUD pages, but Tasks/Attendance/Reports/Class Reports/Performance need testids on any newly-added interactive controls."
+  ],
+  "updated_files": ["/app/test_reports/iteration_2.json"],
+  "success_rate": {"backend": "N/A (no backend)", "frontend": "~65% (core CRUD/nav/login OK; multiple pages missing interactions listed in requirements)"},
+  "test_credentials": "admin@example.com / secret (from /app/memory/test_credentials.md - any non-empty pair is accepted client-side)",
+  "seed_data_creation": "None - only in-memory adds via forms during testing; nothing persists on reload.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tested at https://student-portal-1533.preview.emergentagent.com. All 12 sidebar routes navigate. Zero console errors during full flow. Verified working: login, empty-login validation, dashboard 12/6/30 filter, students search filter (3->0), View profile link -> /students/:id, Registration validation+valid submit+form reset, Walk-in validation+valid submit adds row (4->5), Batch create adds card (3->4), Employees filter (4->2), Logout clears localStorage.auth. Verified BROKEN or MISSING: header bell/shield/search dead, Dashboard 'View All' dead, Header title stuck on 'Executive Overview', Tasks/Attendance/Reports/ClassReports/Performance have zero interactive elements, Batches/Admissions/Employees missing search inputs, Employees missing create form, Admissions pending is directly editable causing inconsistent totals, Registration/Walkin/Batch adds do not propagate across routes (each page uses its own local useState of the imported mock array).",
+  "rca of the issue": "Root cause of missing-feature bugs: pages like Tasks.tsx, Attendance.tsx, Reports.tsx, ClassReports.tsx, Performance.tsx were scaffolded as read-only tables rendering seed arrays; no state/handlers were added. Root cause of cross-route persistence bug: each page does `useState(seedX)` after `import { X } from '../../data/mockData'` -- the mock arrays are module-level constants imported by value into each component, so writes are local. Needs a shared provider or global store. Root cause of dead header controls: Header.tsx renders <button>/<input> with only className/aria but no onClick/onChange props. Root cause of stale header title: title is a hardcoded string literal in Header.tsx; must be driven off useLocation() or a page-title context."
+}

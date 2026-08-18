@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { students as seedStudents, type StudentRecord } from "../../data/mockData";
+import { useNavigate } from "react-router-dom";
+import { useDataStore } from "../../store/DataStore";
+import { useToast } from "../../components/ui/Toast";
+import type { StudentRecord } from "../../data/mockData";
 
-const emptyStudent: Omit<StudentRecord, "id" | "photo"> = {
+type NewStudent = Omit<StudentRecord, "id" | "photo">;
+
+const emptyStudent: NewStudent = {
   name: "",
   mobile: "",
   email: "",
@@ -45,11 +50,14 @@ const emptyStudent: Omit<StudentRecord, "id" | "photo"> = {
 };
 
 export default function Registration() {
-  const [student, setStudent] = useState(emptyStudent);
-  const [records, setRecords] = useState(seedStudents);
+  const { addStudent, batches } = useDataStore();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+
+  const [student, setStudent] = useState<NewStudent>(emptyStudent);
   const [error, setError] = useState("");
 
-  const updateField = <K extends keyof typeof student>(field: K, value: (typeof student)[K]) => {
+  const updateField = <K extends keyof NewStudent>(field: K, value: NewStudent[K]) => {
     setStudent((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -64,29 +72,17 @@ export default function Registration() {
       return;
     }
 
-    const generatedId = `STU-${new Date().getFullYear()}-${String(records.length + 125).padStart(5, "0")}`;
-
-    setRecords((prev) => [{
-      ...student,
-      id: generatedId,
-      photo: "",
-      fee: {
-        ...student.fee,
-        pendingAmount: student.fee.finalFee - student.fee.amountPaid,
-      },
-    }, ...prev]);
-
+    const created = addStudent(student);
     setStudent(emptyStudent);
     setError("");
+    showToast(`${created.name} registered successfully`);
   };
 
   return (
     <div data-testid="registration-page" className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Student Registration</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Capture complete admission information for a new student.
-        </p>
+        <p className="mt-1 text-sm text-slate-500">Capture complete admission information for a new student.</p>
       </div>
 
       <form onSubmit={handleSubmit} data-testid="registration-form" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -110,7 +106,11 @@ export default function Registration() {
           <input value={student.course} onChange={(event) => updateField("course", event.target.value)} placeholder="Course" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
           <input value={student.courseDuration} onChange={(event) => updateField("courseDuration", event.target.value)} placeholder="Course Duration" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
           <input value={student.joiningDate} onChange={(event) => updateField("joiningDate", event.target.value)} type="date" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
-          <input value={student.batch} onChange={(event) => updateField("batch", event.target.value)} placeholder="Batch" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
+          <select data-testid="registration-batch-select" value={student.batch} onChange={(event) => updateField("batch", event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm">
+            {batches.map((batch) => (
+              <option key={batch.id} value={batch.id}>{batch.batchName} ({batch.id})</option>
+            ))}
+          </select>
           <select value={student.mode} onChange={(event) => updateField("mode", event.target.value as StudentRecord["mode"])} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm">
             <option value="Online">Online</option>
             <option value="Offline">Offline</option>
@@ -128,14 +128,24 @@ export default function Registration() {
           <div className="grid gap-4 md:grid-cols-3">
             <input value={student.fee.courseFee} onChange={(event) => updateField("fee", { ...student.fee, courseFee: Number(event.target.value) })} placeholder="Course Fee" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
             <input value={student.fee.discount} onChange={(event) => updateField("fee", { ...student.fee, discount: Number(event.target.value) })} placeholder="Discount" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
-            <input value={student.fee.finalFee} onChange={(event) => updateField("fee", { ...student.fee, finalFee: Number(event.target.value) })} placeholder="Final Fee" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
-            <input value={student.fee.amountPaid} onChange={(event) => updateField("fee", { ...student.fee, amountPaid: Number(event.target.value) })} placeholder="Amount Paid" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
-            <input value={student.fee.pendingAmount} onChange={(event) => updateField("fee", { ...student.fee, pendingAmount: Number(event.target.value) })} placeholder="Pending Amount" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
+            <input value={student.fee.finalFee} onChange={(event) => updateField("fee", { ...student.fee, finalFee: Number(event.target.value), pendingAmount: Math.max(0, Number(event.target.value) - student.fee.amountPaid) })} placeholder="Final Fee" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
+            <input value={student.fee.amountPaid} onChange={(event) => updateField("fee", { ...student.fee, amountPaid: Number(event.target.value), pendingAmount: Math.max(0, student.fee.finalFee - Number(event.target.value)) })} placeholder="Amount Paid" type="number" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-500">
+              Pending: ₹{Math.max(0, student.fee.finalFee - student.fee.amountPaid).toLocaleString("en-IN")}
+            </div>
             <input value={student.fee.paymentDate} onChange={(event) => updateField("fee", { ...student.fee, paymentDate: event.target.value })} type="date" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            data-testid="registration-view-students"
+            onClick={() => navigate("/students")}
+            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            View students
+          </button>
           <button type="submit" data-testid="registration-save-button" className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
             Save registration
           </button>
