@@ -1,7 +1,15 @@
 import AppRoutes from "./routes/AppRoutes";
+import { DataProvider } from "./store/DataStore";
+import { ToastProvider } from "./components/ui/Toast";
 
 function App() {
-  return <AppRoutes />;
+  return (
+    <DataProvider>
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
+    </DataProvider>
+  );
 }
 
 export default App;

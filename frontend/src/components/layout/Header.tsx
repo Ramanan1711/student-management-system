@@ -1,10 +1,44 @@
-import { Bell, Menu, Search, ShieldCheck } from "lucide-react";
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { Menu } from "lucide-react";
+
+import GlobalSearch from "./header/GlobalSearch";
+import NotificationCenter from "./header/NotificationCenter";
+import SecurityMenu from "./header/SecurityMenu";
+import MobileNotificationBadge from "./header/MobileNotificationBadge";
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
+const ROUTE_TITLE: Record<string, string> = {
+  "/dashboard": "Executive Overview",
+  "/walkins": "Student Walk-ins",
+  "/registration": "Student Registration",
+  "/students": "Students",
+  "/admissions": "Admission & Fees",
+  "/batches": "Batch Management",
+  "/employees": "Employees & Trainers",
+  "/attendance": "Attendance",
+  "/class-reports": "Class Reports",
+  "/tasks": "Tasks",
+  "/performance": "Performance",
+  "/reports": "Reports",
+};
+
+function useRouteTitle() {
+  const { pathname } = useLocation();
+  return useMemo(() => {
+    if (pathname.startsWith("/students/") && pathname !== "/students") {
+      return "Student Profile";
+    }
+    return ROUTE_TITLE[pathname] ?? "Dashboard";
+  }, [pathname]);
+}
+
 export default function Header({ onMenuClick }: HeaderProps) {
+  const title = useRouteTitle();
+
   return (
     <header className="sticky top-0 z-20 flex h-[78px] items-center justify-between border-b border-slate-200/80 bg-white/85 px-4 backdrop-blur-xl sm:px-6">
       <button
@@ -16,34 +50,19 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </button>
 
       <div className="hidden flex-1 items-center justify-between gap-4 lg:flex">
-          <h1 className="text-[18px] font-semibold text-slate-900">
-          Executive Overview
+        <h1 data-testid="header-title" className="text-[18px] font-semibold text-slate-900">
+          {title}
         </h1>
 
         <div className="flex items-center gap-3">
-          <label className="flex w-[260px] items-center gap-2 rounded-full bg-[#f8f7f3] px-3 py-2 text-sm text-slate-500 ring-1 ring-slate-200">
-            <Search className="h-4 w-4" />
-            <input
-              className="w-full border-0 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-              placeholder="Search analytics..."
-              data-testid="global-search-input"
-            />
-          </label>
-
-          <button data-testid="header-notifications-button" aria-label="Notifications" className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-blue-50 hover:text-blue-700">
-            <Bell className="h-4 w-4" />
-          </button>
-
-          <button data-testid="header-security-button" aria-label="Security" className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-600 ring-1 ring-slate-200 hover:bg-blue-50 hover:text-blue-700">
-            <ShieldCheck className="h-4 w-4" />
-          </button>
+          <GlobalSearch />
+          <NotificationCenter />
+          <SecurityMenu />
         </div>
       </div>
 
       <div className="ml-auto flex items-center gap-3 lg:hidden">
-        <div data-testid="mobile-notifications-indicator" className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-600 ring-1 ring-slate-200">
-          <Bell className="h-4 w-4" />
-        </div>
+        <MobileNotificationBadge />
       </div>
     </header>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { login } from "../../lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function Login() {
       return;
     }
 
-    localStorage.setItem("auth", "true");
+    login();
 
     navigate("/dashboard");
   };

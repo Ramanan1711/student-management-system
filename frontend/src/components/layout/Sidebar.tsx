@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
+import { logout as clearAuth } from "../../lib/auth";
 
 const navigation = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -41,7 +42,7 @@ export default function Sidebar({ open = true, onClose }: SidebarProps) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("auth");
+    clearAuth();
     navigate("/login");
   };
 

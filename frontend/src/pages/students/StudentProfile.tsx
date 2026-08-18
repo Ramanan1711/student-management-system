@@ -1,8 +1,9 @@
 import { Link, useParams } from "react-router-dom";
-import { students, tasks, classReports } from "../../data/mockData";
+import { useDataStore } from "../../store/DataStore";
 
 export default function StudentProfile() {
   const { studentId } = useParams();
+  const { students, tasks, classReports } = useDataStore();
   const student = students.find((entry) => entry.id === studentId) ?? students[0];
 
   if (!student) {
@@ -88,6 +89,9 @@ export default function StudentProfile() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Tasks</h3>
           <div className="mt-4 space-y-3">
+            {studentTasks.length === 0 && (
+              <p className="text-sm text-slate-500">No tasks assigned yet.</p>
+            )}
             {studentTasks.map((task) => (
               <div key={task.id} className="rounded-xl bg-slate-50 p-3">
                 <div className="flex items-start justify-between gap-3">
