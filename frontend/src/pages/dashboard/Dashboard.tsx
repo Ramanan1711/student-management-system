@@ -19,6 +19,9 @@ const revenueOverview = [
   { month: "DEC", value: 60 },
 ];
 
+const AXIS_TICK = { fontSize: 10, fill: "#64748b" };
+const BAR_RADIUS: [number, number, number, number] = [6, 6, 0, 0];
+
 export default function Dashboard() {
   const { students, walkins, batches, tasks } = useDataStore();
   const navigate = useNavigate();
@@ -125,10 +128,10 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barGap={8}>
               <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#64748b" }} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={AXIS_TICK} />
+              <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} />
               <Tooltip />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="value" radius={BAR_RADIUS}>
                 {chartData.map((entry) => (
                   <Cell
                     key={entry.month}

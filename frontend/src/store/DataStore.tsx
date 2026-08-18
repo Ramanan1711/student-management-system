@@ -22,6 +22,13 @@ import {
   type TaskRecord,
 } from "../data/mockData";
 
+interface NotificationItem {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+}
+
 interface DataStoreValue {
   walkins: WalkinLead[];
   students: StudentRecord[];
@@ -44,16 +51,29 @@ interface DataStoreValue {
     status: "Present" | "Absent" | "Leave",
   ) => void;
 
-  notifications: { id: string; title: string; description: string; time: string }[];
+  notifications: NotificationItem[];
   dismissNotification: (id: string) => void;
 }
 
 const DataStoreContext = createContext<DataStoreValue | null>(null);
 
-function nextId(prefix: string, count: number, pad = 3) {
-  const year = new Date().getFullYear();
-  return `${prefix}-${year}-${String(count + 1).padStart(pad, "0")}`;
-}
+const makeId = (prefix: string, count: number, pad = 3) =>
+  `${prefix}-${new Date().getFullYear()}-${String(count).padStart(pad, "0")}`;
+
+const seedNotifications: NotificationItem[] = [
+  {
+    id: "N-1",
+    title: "New enquiry - Nisha Menon",
+    description: "Weekend Full Stack batch",
+    time: "2h ago",
+  },
+  {
+    id: "N-2",
+    title: "Fee reminder - Karthik S",
+    description: "₹16,000 pending, due 20 Aug",
+    time: "1d ago",
+  },
+];
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [walkins, setWalkins] = useState<WalkinLead[]>(seedWalkins);
@@ -63,125 +83,134 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [classReports, setClassReports] =
     useState<ClassReportRecord[]>(seedClassReports);
   const [tasks, setTasks] = useState<TaskRecord[]>(seedTasks);
-  const [notifications, setNotifications] = useState<
-    { id: string; title: string; description: string; time: string }[]
-  >([
-    {
-      id: "N-1",
-      title: "New enquiry - Nisha Menon",
-      description: "Weekend Full Stack batch",
-      time: "2h ago",
-    },
-    {
-      id: "N-2",
-      title: "Fee reminder - Karthik S",
-      description: "₹16,000 pending, due 20 Aug",
-      time: "1d ago",
-    },
-  ]);
+  const [notifications, setNotifications] =
+    useState<NotificationItem[]>(seedNotifications);
 
-  const pushNotification = useCallback(
-    (title: string, description: string) => {
-      setNotifications((prev) => [
-        {
-          id: `N-${Date.now()}`,
-          title,
-          description,
-          time: "just now",
-        },
-        ...prev,
-      ]);
+  // All mutations below use functional setState so callbacks stay dependency-free
+  // and never capture stale collection lengths.
+
+  const pushNotification = useCallback((title: string, description: string) => {
+    setNotifications((prev) => [
+      { id: `N-${Date.now()}`, title, description, time: "just now" },
+      ...prev,
+    ]);
+  }, []);
+
+  const addWalkin = useCallback<DataStoreValue["addWalkin"]>(
+    (walkin) => {
+      let created!: WalkinLead;
+      setWalkins((prev) => {
+        created = { ...walkin, id: makeId("WL", prev.length + 1) };
+        return [created, ...prev];
+      });
+      pushNotification("New walk-in enquiry", walkin.studentName);
+      return created;
+    },
+    [pushNotification],
+  );
+
+  const addStudent = useCallback<DataStoreValue["addStudent"]>(
+    (student) => {
+      let created!: StudentRecord;
+      setStudents((prev) => {
+        created = {
+          ...student,
+          id: makeId("STU", prev.length + 125, 5),
+          photo: "",
+          fee: {
+            ...student.fee,
+            pendingAmount: Math.max(
+              0,
+              student.fee.finalFee - student.fee.amountPaid,
+            ),
+          },
+        };
+        return [created, ...prev];
+      });
+      pushNotification("New student registered", student.name);
+      return created;
+    },
+    [pushNotification],
+  );
+
+  const updateStudent = useCallback<DataStoreValue["updateStudent"]>(
+    (id, patch) => {
+      setStudents((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+      );
     },
     [],
   );
 
-  const addWalkin = useCallback<DataStoreValue["addWalkin"]>((walkin) => {
-    const record: WalkinLead = {
-      ...walkin,
-      id: nextId("WL", walkins.length + seedWalkins.length),
-    };
-    setWalkins((prev) => [record, ...prev]);
-    pushNotification("New walk-in enquiry", record.studentName);
-    return record;
-  }, [walkins.length, pushNotification]);
-
-  const addStudent = useCallback<DataStoreValue["addStudent"]>((student) => {
-    const record: StudentRecord = {
-      ...student,
-      id: nextId("STU", students.length + 124, 5),
-      photo: "",
-      fee: {
-        ...student.fee,
-        pendingAmount: Math.max(
-          0,
-          student.fee.finalFee - student.fee.amountPaid,
-        ),
-      },
-    };
-    setStudents((prev) => [record, ...prev]);
-    pushNotification("New student registered", record.name);
-    return record;
-  }, [students.length, pushNotification]);
-
-  const updateStudent = useCallback<DataStoreValue["updateStudent"]>((id, patch) => {
-    setStudents((prev) =>
-      prev.map((student) =>
-        student.id === id ? { ...student, ...patch } : student,
-      ),
-    );
-  }, []);
-
   const updateStudentFee = useCallback<DataStoreValue["updateStudentFee"]>(
     (id, patch) => {
       setStudents((prev) =>
-        prev.map((student) => {
-          if (student.id !== id) return student;
-          const nextFee = { ...student.fee, ...patch };
+        prev.map((s) => {
+          if (s.id !== id) return s;
+          const nextFee = { ...s.fee, ...patch };
           nextFee.pendingAmount = Math.max(
             0,
             (nextFee.finalFee || 0) - (nextFee.amountPaid || 0),
           );
-          return { ...student, fee: nextFee };
+          return { ...s, fee: nextFee };
         }),
       );
     },
     [],
   );
 
-  const addBatch = useCallback<DataStoreValue["addBatch"]>((batch) => {
-    const record: BatchRecord = {
-      ...batch,
-      id: `BATCH-${String(batches.length + 1).padStart(2, "0")}`,
-    };
-    setBatches((prev) => [...prev, record]);
-    pushNotification("Batch created", record.batchName);
-    return record;
-  }, [batches.length, pushNotification]);
+  const addBatch = useCallback<DataStoreValue["addBatch"]>(
+    (batch) => {
+      let created!: BatchRecord;
+      setBatches((prev) => {
+        created = {
+          ...batch,
+          id: `BATCH-${String(prev.length + 1).padStart(2, "0")}`,
+        };
+        return [...prev, created];
+      });
+      pushNotification("Batch created", batch.batchName);
+      return created;
+    },
+    [pushNotification],
+  );
 
-  const addEmployee = useCallback<DataStoreValue["addEmployee"]>((employee) => {
-    const record: EmployeeRecord = {
-      ...employee,
-      id: `EMP-${String(employees.length + 101).padStart(3, "0")}`,
-    };
-    setEmployees((prev) => [...prev, record]);
-    pushNotification("Employee added", record.name);
-    return record;
-  }, [employees.length, pushNotification]);
+  const addEmployee = useCallback<DataStoreValue["addEmployee"]>(
+    (employee) => {
+      let created!: EmployeeRecord;
+      setEmployees((prev) => {
+        created = {
+          ...employee,
+          id: `EMP-${String(prev.length + 101).padStart(3, "0")}`,
+        };
+        return [...prev, created];
+      });
+      pushNotification("Employee added", employee.name);
+      return created;
+    },
+    [pushNotification],
+  );
 
-  const addTask = useCallback<DataStoreValue["addTask"]>((task) => {
-    const record: TaskRecord = {
-      ...task,
-      id: `TASK-${String(tasks.length + 1).padStart(3, "0")}`,
-    };
-    setTasks((prev) => [record, ...prev]);
-    pushNotification("Task assigned", record.title);
-    return record;
-  }, [tasks.length, pushNotification]);
+  const addTask = useCallback<DataStoreValue["addTask"]>(
+    (task) => {
+      let created!: TaskRecord;
+      setTasks((prev) => {
+        created = {
+          ...task,
+          id: `TASK-${String(prev.length + 1).padStart(3, "0")}`,
+        };
+        return [created, ...prev];
+      });
+      pushNotification("Task assigned", task.title);
+      return created;
+    },
+    [pushNotification],
+  );
 
   const updateTaskStatus = useCallback<DataStoreValue["updateTaskStatus"]>(
     (id, status) => {
       setTasks((prev) =>
-        prev.map((task) => (task.id === id ? { ...task, status } : task)),
+        prev.map((t) => (t.id === id ? { ...t, status } : t)),
       );
     },
     [],
@@ -189,23 +218,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addClassReport = useCallback<DataStoreValue["addClassReport"]>(
     (report) => {
-      const record: ClassReportRecord = {
-        ...report,
-        id: `CR-${String(classReports.length + 1).padStart(3, "0")}`,
-      };
-      setClassReports((prev) => [record, ...prev]);
-      pushNotification("Class report submitted", record.topic);
-      return record;
+      let created!: ClassReportRecord;
+      setClassReports((prev) => {
+        created = {
+          ...report,
+          id: `CR-${String(prev.length + 1).padStart(3, "0")}`,
+        };
+        return [created, ...prev];
+      });
+      pushNotification("Class report submitted", report.topic);
+      return created;
     },
-    [classReports.length, pushNotification],
+    [pushNotification],
   );
 
   const markAttendance = useCallback<DataStoreValue["markAttendance"]>(
     (studentId, status) => {
       setStudents((prev) =>
-        prev.map((student) => {
-          if (student.id !== studentId) return student;
-          const att = { ...student.attendance };
+        prev.map((s) => {
+          if (s.id !== studentId) return s;
+          const att = { ...s.attendance };
           att.totalClasses += 1;
           if (status === "Present") att.present += 1;
           if (status === "Absent") att.absent += 1;
@@ -213,7 +245,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           att.attendancePercentage = Math.round(
             (att.present / att.totalClasses) * 100,
           );
-          return { ...student, attendance: att };
+          return { ...s, attendance: att };
         }),
       );
     },
@@ -224,6 +256,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
+  // Actions are stable (useCallback with no changing deps), so we memoize them
+  // separately from the data — reducing the value memo to 7 dependencies.
+  const actions = useMemo(
+    () => ({
+      addWalkin,
+      addStudent,
+      updateStudent,
+      updateStudentFee,
+      addBatch,
+      addEmployee,
+      addTask,
+      updateTaskStatus,
+      addClassReport,
+      markAttendance,
+      dismissNotification,
+    }),
+    [
+      addWalkin,
+      addStudent,
+      updateStudent,
+      updateStudentFee,
+      addBatch,
+      addEmployee,
+      addTask,
+      updateTaskStatus,
+      addClassReport,
+      markAttendance,
+      dismissNotification,
+    ],
+  );
+
   const value = useMemo<DataStoreValue>(
     () => ({
       walkins,
@@ -232,39 +295,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       employees,
       classReports,
       tasks,
-      addWalkin,
-      addStudent,
-      updateStudent,
-      updateStudentFee,
-      addBatch,
-      addEmployee,
-      addTask,
-      updateTaskStatus,
-      addClassReport,
-      markAttendance,
       notifications,
-      dismissNotification,
+      ...actions,
     }),
-    [
-      walkins,
-      students,
-      batches,
-      employees,
-      classReports,
-      tasks,
-      addWalkin,
-      addStudent,
-      updateStudent,
-      updateStudentFee,
-      addBatch,
-      addEmployee,
-      addTask,
-      updateTaskStatus,
-      addClassReport,
-      markAttendance,
-      notifications,
-      dismissNotification,
-    ],
+    [walkins, students, batches, employees, classReports, tasks, notifications, actions],
   );
 
   return (
@@ -276,8 +310,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
 export function useDataStore() {
   const ctx = useContext(DataStoreContext);
-  if (!ctx) {
-    throw new Error("useDataStore must be used within a DataProvider");
-  }
+  if (!ctx) throw new Error("useDataStore must be used within a DataProvider");
   return ctx;
 }

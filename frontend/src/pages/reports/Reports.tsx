@@ -13,6 +13,9 @@ const monthlyProgress = [
   { name: "Jun", value: 82 },
 ];
 
+const CHART_DOMAIN: [number, number] = [0, 100];
+const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
+
 type ReportView = "attendance" | "fee" | "progress";
 
 export default function Reports() {
@@ -129,9 +132,9 @@ export default function Reports() {
             <BarChart data={monthlyProgress}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" stroke="#64748b" />
-              <YAxis stroke="#64748b" domain={[0, 100]} />
+              <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
               <Tooltip />
-              <Bar dataKey="value" fill="#1e293b" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 
 import AppLayout from "../components/layout/AppLayout";
+import { isAuthenticated } from "../lib/auth";
 
 import Dashboard from "../pages/dashboard/Dashboard";
 import Walkins from "../pages/walkins/Walkins";
@@ -19,7 +20,7 @@ import Reports from "../pages/reports/Reports";
 import Login from "../pages/auth/Login";
 
 function RequireAuth({ children }: { children: ReactNode }) {
-  return localStorage.getItem("auth") === "true"
+  return isAuthenticated()
     ? children
     : <Navigate to="/login" replace />;
 }

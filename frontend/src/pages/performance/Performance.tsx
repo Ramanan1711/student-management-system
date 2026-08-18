@@ -14,6 +14,9 @@ const metricLabels: Record<Metric, string> = {
   behaviour: "Behaviour",
 };
 
+const CHART_DOMAIN: [number, number] = [0, 100];
+const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
+
 export default function Performance() {
   const { students } = useDataStore();
   const [metric, setMetric] = useState<Metric>("overallPerformance");
@@ -71,9 +74,9 @@ export default function Performance() {
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" stroke="#64748b" />
-              <YAxis stroke="#64748b" domain={[0, 100]} />
+              <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
               <Tooltip />
-              <Bar dataKey="value" fill="#0f172a" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#0f172a" radius={BAR_RADIUS} />
             </BarChart>
           </ResponsiveContainer>
         </div>
