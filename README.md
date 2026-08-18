@@ -47,6 +47,14 @@ A responsive React + TypeScript frontend for managing academy operations includi
 npm run build
 ```
 
+## Deployment
+
+Pushing to `main` runs linting and builds the frontend before deploying it to GitHub Pages. In the repository settings, set **Pages > Build and deployment > Source** to **GitHub Actions**. The deployed app will be available at:
+
+```text
+https://ramanan1711.github.io/student-management-system/
+```
+
 ## Notes
 
 - Mock JSON data is used to simulate student, batch, report, employee, and walk-in datasets.
