@@ -41,6 +41,25 @@ function syncBatchMembers(students: StudentRecord[], batches: BatchRecord[]): Ba
   }));
 }
 
+function syncEmployeeCounts(
+  employees: EmployeeRecord[],
+  allocations: EmployeeAllocation[],
+  batches: BatchRecord[],
+): EmployeeRecord[] {
+  return employees.map((employee) => {
+    const studentIds = new Set<string>();
+    allocations
+      .filter((allocation) => allocation.employeeId === employee.id)
+      .forEach((allocation) => {
+        if (allocation.studentId) studentIds.add(allocation.studentId);
+        if (allocation.batchId) {
+          batches.find((batch) => batch.id === allocation.batchId)?.students.forEach((studentId) => studentIds.add(studentId));
+        }
+      });
+    return { ...employee, allocatedStudents: studentIds.size };
+  });
+}
+
 const STORAGE_PREFIX = "sms.data.";
 
 function loadStored<T>(key: string, fallback: T): T {
@@ -83,7 +102,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const storedStudents = loadStored("students", seedStudents);
     return syncBatchMembers(storedStudents, loadStored("batches", seedBatches));
   });
-  const [employees, setEmployees] = useState<EmployeeRecord[]>(() => loadStored("employees", seedEmployees));
+  const [employees, setEmployees] = useState<EmployeeRecord[]>(() => {
+    const storedBatches = loadStored("batches", seedBatches);
+    const storedAllocations = loadStored("employeeAllocations", seedEmployeeAllocations);
+    return syncEmployeeCounts(loadStored("employees", seedEmployees), storedAllocations, storedBatches);
+  });
   const [classReports, setClassReports] = useState<ClassReportRecord[]>(() => loadStored("classReports", seedClassReports));
   const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));
   const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
@@ -149,11 +172,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
         };
         return [created, ...prev];
       });
-      setBatches((prev) => syncBatchMembers([created, ...students], prev));
+      setBatches((prev) => {
+        const nextBatches = syncBatchMembers([created, ...students], prev);
+        setEmployees((prevEmployees) => syncEmployeeCounts(prevEmployees, employeeAllocations, nextBatches));
+        return nextBatches;
+      });
       pushNotification("New student registered", student.name);
       return created;
     },
-    [pushNotification, students],
+    [pushNotification, students, employeeAllocations],
   );
 
   const updateStudent = useCallback<DataStoreValue["updateStudent"]>(
@@ -161,12 +188,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setStudents((prev) => {
         const nextStudents = prev.map((s) => (s.id === id ? { ...s, ...patch } : s));
         if (patch.batchId !== undefined) {
-          setBatches((prevBatches) => syncBatchMembers(nextStudents, prevBatches));
+          setBatches((prevBatches) => {
+            const nextBatches = syncBatchMembers(nextStudents, prevBatches);
+            setEmployees((prevEmployees) => syncEmployeeCounts(prevEmployees, employeeAllocations, nextBatches));
+            return nextBatches;
+          });
         }
         return nextStudents;
       });
     },
-    [],
+    [employeeAllocations],
   );
 
   const updateStudentFee = useCallback<DataStoreValue["updateStudentFee"]>(
@@ -229,10 +260,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         id: `ALLOC-${Date.now()}`,
       };
       setEmployeeAllocations((prev) => [...prev, created]);
+      setEmployees((prev) => syncEmployeeCounts(prev, [...employeeAllocations, created], batches));
       pushNotification("Employee allocation created", allocation.studentId ?? allocation.batchId ?? "Assignment");
       return created;
     },
-    [employeeAllocations, pushNotification],
+    [employeeAllocations, batches, pushNotification],
   );
 
   const addTask = useCallback<DataStoreValue["addTask"]>(

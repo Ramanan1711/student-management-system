@@ -132,6 +132,13 @@ export default function Employees() {
           <div data-testid={`employee-card-${employee.id}`} key={employee.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             {(() => {
               const allocations = employeeAllocations.filter((allocation) => allocation.employeeId === employee.id);
+              const allocatedStudentIds = new Set<string>();
+              allocations.forEach((allocation) => {
+                if (allocation.studentId) allocatedStudentIds.add(allocation.studentId);
+                if (allocation.batchId) {
+                  batches.find((batch) => batch.id === allocation.batchId)?.students.forEach((studentId) => allocatedStudentIds.add(studentId));
+                }
+              });
               return <>
             <div className="flex items-center justify-between">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
@@ -147,7 +154,7 @@ export default function Employees() {
             <div className="mt-4 space-y-2 text-sm text-slate-600">
               <p>{employee.email}</p>
               <p>{employee.phone}</p>
-              <p>{employee.allocatedStudents} allocated students</p>
+              <p>{allocatedStudentIds.size} allocated students</p>
               <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Assignments</p>
               {allocations.length === 0 && <p className="text-xs text-slate-500">No assignments yet.</p>}
               {allocations.slice(0, 3).map((allocation) => {
