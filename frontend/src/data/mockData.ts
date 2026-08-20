@@ -115,6 +115,15 @@ export interface EmployeeAllocation {
   assignedAt: string;
 }
 
+export interface FeeTransaction {
+  id: string;
+  studentId: string;
+  amount: number;
+  date: string;
+  paymentMode: PaymentMode;
+  remarks: string;
+}
+
 export interface ClassReportRecord {
   id: string;
   date: string;
@@ -544,6 +553,12 @@ export const employees: EmployeeRecord[] = [
 export const employeeAllocations: EmployeeAllocation[] = [
   { id: "ALLOC-001", employeeId: "EMP-101", batchId: "FS-APR-01", assignedAt: "2026-08-01" },
   { id: "ALLOC-002", employeeId: "EMP-102", batchId: "JAVA-MAY-01", assignedAt: "2026-08-01" },
+];
+
+export const feeTransactions: FeeTransaction[] = [
+  { id: "PAY-001", studentId: "STU-2026-00125", amount: 20000, date: "2026-08-01", paymentMode: "UPI", remarks: "First installment" },
+  { id: "PAY-002", studentId: "STU-2026-00125", amount: 10000, date: "2026-08-15", paymentMode: "Card", remarks: "Second installment" },
+  { id: "PAY-003", studentId: "STU-2026-00126", amount: 35000, date: "2026-08-10", paymentMode: "Card", remarks: "Admission payment" },
 ];
 
 export const classReports: ClassReportRecord[] = [

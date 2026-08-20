@@ -29,6 +29,8 @@ import {
   type ClassReportRecord,
   type TaskRecord,
   type EmployeeAllocation,
+  type FeeTransaction,
+  feeTransactions as seedFeeTransactions,
 } from "../data/mockData";
 
 const makeId = (prefix: string, count: number, pad = 3) =>
@@ -114,6 +116,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
   const [attendanceRecords, setAttendanceRecords] = useState(() => loadStored("attendanceRecords", seedAttendanceRecords));
   const [employeeAllocations, setEmployeeAllocations] = useState(() => loadStored("employeeAllocations", seedEmployeeAllocations));
+  const [feeTransactions, setFeeTransactions] = useState(() => loadStored("feeTransactions", seedFeeTransactions));
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => loadStored("notifications", seedNotifications));
 
   useEffect(() => {
@@ -131,8 +134,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveStored("videoRecords", videoRecords);
     saveStored("attendanceRecords", attendanceRecords);
     saveStored("employeeAllocations", employeeAllocations);
+    saveStored("feeTransactions", feeTransactions);
     saveStored("notifications", notifications);
-  }, [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, notifications]);
+  }, [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, feeTransactions, notifications]);
 
   // All mutations below use functional setState so callbacks stay dependency-free
   // and never capture stale collection lengths.
@@ -269,6 +273,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [employeeAllocations, batches, pushNotification],
   );
 
+  const addFeeTransaction = useCallback<DataStoreValue["addFeeTransaction"]>(
+    (transaction) => {
+      if (transaction.amount <= 0) return null;
+      const created: FeeTransaction = { ...transaction, id: `PAY-${Date.now()}` };
+      setFeeTransactions((prev) => [...prev, created]);
+      setStudents((prev) => prev.map((student) => {
+        if (student.id !== transaction.studentId) return student;
+        const amountPaid = student.fee.amountPaid + transaction.amount;
+        return { ...student, fee: { ...student.fee, amountPaid, pendingAmount: Math.max(0, student.fee.finalFee - amountPaid), paymentDate: transaction.date, paymentMode: transaction.paymentMode, paymentRemarks: transaction.remarks } };
+      }));
+      pushNotification("Payment recorded", transaction.studentId);
+      return created;
+    },
+    [pushNotification],
+  );
+
   const addTask = useCallback<DataStoreValue["addTask"]>(
     (task) => {
       let created!: TaskRecord;
@@ -353,6 +373,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addBatch,
       addEmployee,
       addEmployeeAllocation,
+      addFeeTransaction,
       addTask,
       updateTaskStatus,
       addClassReport,
@@ -367,6 +388,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addBatch,
       addEmployee,
       addEmployeeAllocation,
+      addFeeTransaction,
       addTask,
       updateTaskStatus,
       addClassReport,
@@ -386,10 +408,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       videoRecords,
       attendanceRecords,
       employeeAllocations,
+      feeTransactions,
       notifications,
       ...actions,
     }),
-    [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, notifications, actions],
+    [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, feeTransactions, notifications, actions],
   );
 
   return (

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
 import type { StudentRecord } from "../../data/mockData";
@@ -11,10 +11,13 @@ const currency = new Intl.NumberFormat("en-IN", {
 });
 
 export default function Admissions() {
-  const { students, updateStudentFee } = useDataStore();
+  const { students, updateStudentFee, addFeeTransaction } = useDataStore();
   const { showToast } = useToast();
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? "");
   const [search, setSearch] = useState("");
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [payment, setPayment] = useState({ amount: "", date: new Date().toISOString().slice(0, 10), paymentMode: "UPI" as StudentRecord["fee"]["paymentMode"], remarks: "" });
+  const [paymentError, setPaymentError] = useState("");
 
   const selectedStudent = useMemo(
     () =>
@@ -51,8 +54,28 @@ export default function Admissions() {
   };
 
   const recordPayment = () => {
-    if (!selectedStudent) return;
-    showToast(`Payment updated for ${selectedStudent.name}`);
+    setPayment({ amount: "", date: new Date().toISOString().slice(0, 10), paymentMode: "UPI", remarks: "" });
+    setPaymentError("");
+    setShowPaymentForm(true);
+  };
+
+  const submitPayment = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedStudent || !payment.amount || Number(payment.amount) <= 0) {
+      setPaymentError("Enter a payment amount greater than zero.");
+      return;
+    }
+    if (Number(payment.amount) > selectedStudent.fee.pendingAmount) {
+      setPaymentError("Payment cannot be greater than the pending amount.");
+      return;
+    }
+    const created = addFeeTransaction({ studentId: selectedStudent.id, amount: Number(payment.amount), date: payment.date, paymentMode: payment.paymentMode, remarks: payment.remarks });
+    if (!created) {
+      setPaymentError("Unable to record this payment.");
+      return;
+    }
+    showToast(`Payment recorded for ${selectedStudent.name}`);
+    setShowPaymentForm(false);
   };
 
   if (!selectedStudent) {
@@ -178,6 +201,22 @@ export default function Admissions() {
           </div>
         </div>
       </div>
+
+      {showPaymentForm && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setShowPaymentForm(false)}>
+          <form onSubmit={submitPayment} data-testid="payment-form" onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-slate-900">Record payment</h2><button type="button" data-testid="payment-form-close" onClick={() => setShowPaymentForm(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button></div>
+            {paymentError && <p data-testid="payment-form-error" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{paymentError}</p>}
+            <div className="grid gap-4">
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Amount<input data-testid="payment-amount-input" type="number" min="1" max={selectedStudent.fee.pendingAmount} value={payment.amount} onChange={(event) => setPayment({ ...payment, amount: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" /></label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Payment date<input data-testid="payment-date-input" type="date" value={payment.date} onChange={(event) => setPayment({ ...payment, date: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" /></label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Payment mode<select data-testid="payment-mode-input" value={payment.paymentMode} onChange={(event) => setPayment({ ...payment, paymentMode: event.target.value as StudentRecord["fee"]["paymentMode"] })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option></select></label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Remarks<textarea data-testid="payment-remarks-input" value={payment.remarks} onChange={(event) => setPayment({ ...payment, remarks: event.target.value })} rows={2} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" /></label>
+            </div>
+            <div className="mt-5 flex justify-end gap-3"><button type="button" onClick={() => setShowPaymentForm(false)} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" data-testid="payment-save-button" className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Save payment</button></div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,7 +14,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 type ReportView = "attendance" | "fee" | "progress";
 
 export default function Reports() {
-  const { students, batches: batchRecords } = useDataStore();
+  const { students, batches: batchRecords, feeTransactions } = useDataStore();
   const { showToast } = useToast();
   const [view, setView] = useState<ReportView>("progress");
   const [batchFilter, setBatchFilter] = useState<string>("All");
@@ -64,12 +64,13 @@ export default function Reports() {
       let value = 0;
 
       if (view === "fee") {
-        value = filteredStudents
-          .filter((student) => {
-            const paymentDate = new Date(`${student.fee.paymentDate}T00:00:00`);
-            return paymentDate.getFullYear() === year && paymentDate.getMonth() === monthIndex;
+        const studentIds = new Set(filteredStudents.map((student) => student.id));
+        value = feeTransactions
+          .filter((transaction) => {
+            const paymentDate = new Date(`${transaction.date}T00:00:00`);
+            return studentIds.has(transaction.studentId) && paymentDate.getFullYear() === year && paymentDate.getMonth() === monthIndex;
           })
-          .reduce((sum, student) => sum + student.fee.amountPaid, 0);
+          .reduce((sum, transaction) => sum + transaction.amount, 0);
       } else if (activeStudents.length > 0) {
         value = Math.round(
           activeStudents.reduce(
@@ -81,7 +82,7 @@ export default function Reports() {
 
       return { name, value };
     });
-  }, [filteredStudents, view]);
+  }, [feeTransactions, filteredStudents, view]);
 
   const chartDomain: [number, number] = view === "fee"
     ? [0, Math.max(1000, Math.ceil(Math.max(...chartData.map((entry) => entry.value), 0) * 1.2 / 1000) * 1000)]

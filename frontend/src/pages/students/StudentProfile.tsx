@@ -17,7 +17,7 @@ type ProfileTab = (typeof profileTabs)[number];
 
 export default function StudentProfile() {
   const { studentId } = useParams();
-  const { students, batches, tasks, classReports, videoRecords, attendanceRecords } = useDataStore();
+  const { students, batches, tasks, classReports, videoRecords, attendanceRecords, feeTransactions } = useDataStore();
   const [activeTab, setActiveTab] = useState<ProfileTab>("Overview");
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const student = students.find((entry) => entry.id === studentId);
@@ -36,6 +36,7 @@ export default function StudentProfile() {
   const studentAttendance = attendanceRecords
     .filter((record) => record.studentId === student.id)
     .sort((first, second) => second.date.localeCompare(first.date));
+  const studentPayments = feeTransactions.filter((transaction) => transaction.studentId === student.id).sort((first, second) => second.date.localeCompare(first.date));
   const selectedVideo = studentVideos.find((video) => video.id === selectedVideoId);
   const courseProgress = student.performance.overallPerformance;
 
@@ -83,7 +84,12 @@ export default function StudentProfile() {
       <HistoryPreview title="Date-based attendance history" empty="No dated attendance records yet." items={studentAttendance.map((record) => ({ title: record.date, detail: record.status, date: record.status }))} />
     </div>
   );
-  const renderFees = () => <InfoSection title="Fee ledger" items={[["Course fee", `₹${student.fee.courseFee.toLocaleString("en-IN")}`], ["Discount", `₹${student.fee.discount.toLocaleString("en-IN")}`], ["Final fee", `₹${student.fee.finalFee.toLocaleString("en-IN")}`], ["Amount paid", `₹${student.fee.amountPaid.toLocaleString("en-IN")}`], ["Pending amount", `₹${student.fee.pendingAmount.toLocaleString("en-IN")}`], ["Payment date", student.fee.paymentDate], ["Payment mode", student.fee.paymentMode], ["Next payment", student.fee.nextPaymentDate]]} />;
+  const renderFees = () => (
+    <div className="space-y-6">
+      <InfoSection title="Fee summary" items={[["Course fee", `₹${student.fee.courseFee.toLocaleString("en-IN")}`], ["Discount", `₹${student.fee.discount.toLocaleString("en-IN")}`], ["Final fee", `₹${student.fee.finalFee.toLocaleString("en-IN")}`], ["Amount paid", `₹${student.fee.amountPaid.toLocaleString("en-IN")}`], ["Pending amount", `₹${student.fee.pendingAmount.toLocaleString("en-IN")}`], ["Next payment", student.fee.nextPaymentDate]]} />
+      <HistoryPreview title="Payment history" empty="No payment transactions recorded yet." items={studentPayments.map((payment) => ({ title: `₹${payment.amount.toLocaleString("en-IN")}`, detail: `${payment.paymentMode}${payment.remarks ? ` · ${payment.remarks}` : ""}`, date: payment.date }))} />
+    </div>
+  );
   const renderPerformance = () => <InfoSection title="Performance metrics" items={Object.entries(student.performance).map(([label, value]) => [label.replace(/([A-Z])/g, " $1"), `${value}%`])} />;
   const renderVideos = () => (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

@@ -10,6 +10,7 @@ import type {
   AttendanceRecord,
   EmployeeAllocation,
   WalkinLead,
+  FeeTransaction,
 } from "../data/mockData";
 
 export interface NotificationItem {
@@ -29,6 +30,7 @@ export interface DataStoreValue {
   videoRecords: VideoRecord[];
   attendanceRecords: AttendanceRecord[];
   employeeAllocations: EmployeeAllocation[];
+  feeTransactions: FeeTransaction[];
 
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
   addStudent: (student: Omit<StudentRecord, "id">) => StudentRecord;
@@ -37,6 +39,7 @@ export interface DataStoreValue {
   addBatch: (batch: Omit<BatchRecord, "id">) => BatchRecord;
   addEmployee: (employee: Omit<EmployeeRecord, "id">) => EmployeeRecord;
   addEmployeeAllocation: (allocation: Omit<EmployeeAllocation, "id">) => EmployeeAllocation | null;
+  addFeeTransaction: (transaction: Omit<FeeTransaction, "id">) => FeeTransaction | null;
   addTask: (task: Omit<TaskRecord, "id">) => TaskRecord;
   updateTaskStatus: (id: string, status: TaskRecord["status"]) => void;
   addClassReport: (report: Omit<ClassReportRecord, "id">) => ClassReportRecord;
