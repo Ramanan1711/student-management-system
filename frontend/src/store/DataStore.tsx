@@ -30,6 +30,7 @@ import {
   type TaskRecord,
   type EmployeeAllocation,
   type FeeTransaction,
+  type VideoRecord,
   feeTransactions as seedFeeTransactions,
 } from "../data/mockData";
 
@@ -303,6 +304,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [pushNotification],
   );
 
+  const addVideoRecord = useCallback<DataStoreValue["addVideoRecord"]>((record) => {
+    const created: VideoRecord = { ...record, id: `VID-${Date.now()}` };
+    setVideoRecords((prev) => [...prev, created]);
+    pushNotification("Video record added", record.title);
+    return created;
+  }, [pushNotification]);
+
+  const updateVideoRecord = useCallback<DataStoreValue["updateVideoRecord"]>((id, patch) => {
+    setVideoRecords((prev) => prev.map((record) => record.id === id ? { ...record, ...patch } : record));
+  }, []);
+
+  const deleteVideoRecord = useCallback<DataStoreValue["deleteVideoRecord"]>((id) => {
+    let removed = false;
+    setVideoRecords((prev) => {
+      removed = prev.some((record) => record.id === id);
+      return prev.filter((record) => record.id !== id);
+    });
+    return removed;
+  }, []);
+
   const addTask = useCallback<DataStoreValue["addTask"]>(
     (task) => {
       let created!: TaskRecord;
@@ -389,6 +410,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addEmployee,
       addEmployeeAllocation,
       addFeeTransaction,
+      addVideoRecord,
+      updateVideoRecord,
+      deleteVideoRecord,
       addTask,
       updateTaskStatus,
       addClassReport,
@@ -405,6 +429,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addEmployee,
       addEmployeeAllocation,
       addFeeTransaction,
+      addVideoRecord,
+      updateVideoRecord,
+      deleteVideoRecord,
       addTask,
       updateTaskStatus,
       addClassReport,

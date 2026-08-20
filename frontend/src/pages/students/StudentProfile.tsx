@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus, X } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useDataStore } from "../../store/dataStoreContext";
 import { getBatchName } from "../../data/mockData";
@@ -17,9 +18,12 @@ type ProfileTab = (typeof profileTabs)[number];
 
 export default function StudentProfile() {
   const { studentId } = useParams();
-  const { students, batches, tasks, classReports, videoRecords, attendanceRecords, feeTransactions } = useDataStore();
+  const { students, batches, tasks, classReports, videoRecords, attendanceRecords, feeTransactions, addVideoRecord, updateVideoRecord, deleteVideoRecord } = useDataStore();
   const [activeTab, setActiveTab] = useState<ProfileTab>("Overview");
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState("");
+  const [videoForm, setVideoForm] = useState({ id: "", title: "", date: new Date().toISOString().slice(0, 10), duration: "", type: "Class recording" as "Class recording" | "Project review" | "Feedback", url: "" });
+  const [showVideoForm, setShowVideoForm] = useState(false);
   const student = students.find((entry) => entry.id === studentId);
 
   if (!student) {
@@ -93,13 +97,13 @@ export default function StudentProfile() {
   const renderPerformance = () => <InfoSection title="Performance metrics" items={Object.entries(student.performance).map(([label, value]) => [label.replace(/([A-Z])/g, " $1"), `${value}%`])} />;
   const renderVideos = () => (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">Video and class records</h3>
+      <div className="flex items-center justify-between gap-3"><h3 className="text-lg font-semibold text-slate-900">Video and class records</h3><button type="button" data-testid="student-video-add" onClick={() => { setVideoForm({ id: "", title: "", date: new Date().toISOString().slice(0, 10), duration: "", type: "Class recording", url: "" }); setVideoError(""); setShowVideoForm(true); }} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Add video</button></div>
       <div className="mt-4 space-y-3">
         {studentVideos.length === 0 && <p className="text-sm text-slate-500">No video records available yet.</p>}
         {studentVideos.map((video) => (
           <div key={video.id} className="flex flex-col gap-3 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="font-medium text-slate-900">{video.title}</p><p className="mt-1 text-sm text-slate-600">{video.type} · {video.duration} · {video.date}</p></div>
-            <button type="button" data-testid={`student-video-${video.id}`} onClick={() => setSelectedVideoId(video.id)} className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open recording</button>
+            <div className="flex flex-wrap gap-2"><button type="button" data-testid={`student-video-${video.id}`} onClick={() => { setVideoError(""); setSelectedVideoId(video.id); }} className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open recording</button><button type="button" data-testid={`student-video-edit-${video.id}`} onClick={() => { setVideoForm(video); setVideoError(""); setShowVideoForm(true); }} className="text-sm font-semibold text-slate-700">Edit</button><button type="button" data-testid={`student-video-delete-${video.id}`} onClick={() => { if (window.confirm(`Delete ${video.title}?`)) deleteVideoRecord(video.id); }} className="text-sm font-semibold text-red-700">Delete</button></div>
           </div>
         ))}
       </div>
@@ -152,10 +156,22 @@ export default function StudentProfile() {
               <div><h2 className="text-lg font-semibold text-slate-900">{selectedVideo.title}</h2><p className="text-sm text-slate-500">{selectedVideo.type} · {selectedVideo.date}</p></div>
               <button type="button" data-testid="student-video-close" onClick={() => setSelectedVideoId(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Close</button>
             </div>
-            <video controls autoPlay className="w-full rounded-xl bg-slate-950" src={selectedVideo.url}>
+            <video controls autoPlay className="w-full rounded-xl bg-slate-950" src={selectedVideo.url} onError={() => setVideoError("This recording is unavailable or could not be loaded.")}>
               Your browser does not support video playback.
             </video>
+            {videoError && <p data-testid="student-video-error" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{videoError}</p>}
           </div>
+        </div>
+      )}
+
+      {showVideoForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4" onClick={() => setShowVideoForm(false)}>
+          <form data-testid="student-video-form" onSubmit={(event) => { event.preventDefault(); if (!videoForm.title || !videoForm.url) { setVideoError("Title and video file are required."); return; } if (videoForm.id) updateVideoRecord(videoForm.id, videoForm); else addVideoRecord({ ...videoForm, studentId: student.id }); setShowVideoForm(false); }} onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-slate-900">{videoForm.id ? "Edit video record" : "Add video record"}</h2><button type="button" data-testid="student-video-form-close" onClick={() => setShowVideoForm(false)} className="rounded-lg p-2 text-slate-500"><X className="h-4 w-4" /></button></div>
+            {videoError && <p data-testid="student-video-form-error" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{videoError}</p>}
+            <div className="grid gap-4"><input data-testid="student-video-title" value={videoForm.title} onChange={(event) => setVideoForm({ ...videoForm, title: event.target.value })} placeholder="Video title" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><input data-testid="student-video-date" type="date" value={videoForm.date} onChange={(event) => setVideoForm({ ...videoForm, date: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><input value={videoForm.duration} onChange={(event) => setVideoForm({ ...videoForm, duration: event.target.value })} placeholder="Duration (e.g. 35 min)" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><select value={videoForm.type} onChange={(event) => setVideoForm({ ...videoForm, type: event.target.value as typeof videoForm.type })} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm"><option>Class recording</option><option>Project review</option><option>Feedback</option></select><label className="rounded-lg border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-600">{videoForm.url ? "Change video file" : "Upload video file"}<input data-testid="student-video-file" type="file" accept="video/*" className="mt-2 block w-full text-xs" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; if (!file.type.startsWith("video/")) { setVideoError("Please select a video file."); return; } if (file.size > 25 * 1024 * 1024) { setVideoError("Video must be smaller than 25 MB."); return; } const reader = new FileReader(); reader.onload = () => setVideoForm((prev) => ({ ...prev, url: typeof reader.result === "string" ? reader.result : "" })); reader.readAsDataURL(file); }} /></label></div>
+            <div className="mt-5 flex justify-end gap-3"><button type="button" onClick={() => setShowVideoForm(false)} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" data-testid="student-video-save" className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Save video</button></div>
+          </form>
         </div>
       )}
     </div>

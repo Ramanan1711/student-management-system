@@ -41,6 +41,9 @@ export interface DataStoreValue {
   addEmployee: (employee: Omit<EmployeeRecord, "id">) => EmployeeRecord;
   addEmployeeAllocation: (allocation: Omit<EmployeeAllocation, "id">) => EmployeeAllocation | null;
   addFeeTransaction: (transaction: Omit<FeeTransaction, "id">) => FeeTransaction | null;
+  addVideoRecord: (record: Omit<VideoRecord, "id">) => VideoRecord;
+  updateVideoRecord: (id: string, patch: Partial<VideoRecord>) => void;
+  deleteVideoRecord: (id: string) => boolean;
   addTask: (task: Omit<TaskRecord, "id">) => TaskRecord;
   updateTaskStatus: (id: string, status: TaskRecord["status"]) => void;
   addClassReport: (report: Omit<ClassReportRecord, "id">) => ClassReportRecord;
