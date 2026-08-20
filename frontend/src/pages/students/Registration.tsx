@@ -4,9 +4,10 @@ import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
 import type { StudentRecord } from "../../data/mockData";
 
-type NewStudent = Omit<StudentRecord, "id" | "photo">;
+type NewStudent = Omit<StudentRecord, "id">;
 
 const emptyStudent: NewStudent = {
+  photo: "",
   name: "",
   mobile: "",
   email: "",
@@ -57,6 +58,23 @@ export default function Registration() {
   const [student, setStudent] = useState<NewStudent>(emptyStudent);
   const [error, setError] = useState("");
 
+  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Photo must be smaller than 5 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => updateField("photo", typeof reader.result === "string" ? reader.result : "");
+    reader.readAsDataURL(file);
+  };
+
   const updateField = <K extends keyof NewStudent>(field: K, value: NewStudent[K]) => {
     setStudent((prev) => ({ ...prev, [field]: value }));
   };
@@ -88,8 +106,13 @@ export default function Registration() {
       <form onSubmit={handleSubmit} data-testid="registration-form" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Student details</h2>
-          <label data-testid="registration-photo-upload" className="cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:border-blue-300 hover:text-blue-700">Upload photo<input type="file" accept="image/*" className="hidden" /></label>
+          <label data-testid="registration-photo-upload" className="cursor-pointer rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:border-blue-300 hover:text-blue-700">
+            {student.photo ? "Change photo" : "Upload photo"}
+            <input data-testid="registration-photo-input" type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+          </label>
         </div>
+
+        {student.photo && <img src={student.photo} alt="Student preview" className="mb-4 h-20 w-20 rounded-full object-cover" />}
 
         {error && <p data-testid="registration-form-error" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

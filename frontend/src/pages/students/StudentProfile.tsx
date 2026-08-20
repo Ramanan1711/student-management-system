@@ -43,7 +43,7 @@ export default function StudentProfile() {
       <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white">{student.name.slice(0, 1)}</div>
+            {student.photo ? <img src={student.photo} alt={`${student.name} profile`} className="h-16 w-16 rounded-full object-cover" /> : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white">{student.name.slice(0, 1)}</div>}
             <div><h2 className="text-xl font-bold text-slate-900">{student.name}</h2><p className="text-sm text-slate-500">{student.id}</p></div>
           </div>
           <dl className="mt-5 space-y-3 text-sm">

@@ -29,7 +29,7 @@ export interface DataStoreValue {
   attendanceRecords: AttendanceRecord[];
 
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
-  addStudent: (student: Omit<StudentRecord, "id" | "photo">) => StudentRecord;
+  addStudent: (student: Omit<StudentRecord, "id">) => StudentRecord;
   updateStudent: (id: string, patch: Partial<StudentRecord>) => void;
   updateStudentFee: (id: string, patch: Partial<StudentRecord["fee"]>) => void;
   addBatch: (batch: Omit<BatchRecord, "id">) => BatchRecord;

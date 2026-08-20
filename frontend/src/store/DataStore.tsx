@@ -89,7 +89,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         created = {
           ...student,
           id: makeId("STU", prev.length + 125, 5),
-          photo: "",
           fee: {
             ...student.fee,
             pendingAmount: Math.max(
