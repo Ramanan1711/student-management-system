@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -31,6 +32,25 @@ import {
 const makeId = (prefix: string, count: number, pad = 3) =>
   `${prefix}-${new Date().getFullYear()}-${String(count).padStart(pad, "0")}`;
 
+const STORAGE_PREFIX = "sms.data.";
+
+function loadStored<T>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
+    return stored ? (JSON.parse(stored) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveStored<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(`${STORAGE_PREFIX}${key}`, JSON.stringify(value));
+  } catch {
+    // Storage can be unavailable or full; the in-memory store remains usable.
+  }
+}
+
 const seedNotifications: NotificationItem[] = [
   {
     id: "N-1",
@@ -47,17 +67,27 @@ const seedNotifications: NotificationItem[] = [
 ];
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [walkins, setWalkins] = useState<WalkinLead[]>(seedWalkins);
-  const [students, setStudents] = useState<StudentRecord[]>(seedStudents);
-  const [batches, setBatches] = useState<BatchRecord[]>(seedBatches);
-  const [employees, setEmployees] = useState<EmployeeRecord[]>(seedEmployees);
-  const [classReports, setClassReports] =
-    useState<ClassReportRecord[]>(seedClassReports);
-  const [tasks, setTasks] = useState<TaskRecord[]>(seedTasks);
-  const [videoRecords] = useState(seedVideoRecords);
-  const [attendanceRecords, setAttendanceRecords] = useState(seedAttendanceRecords);
-  const [notifications, setNotifications] =
-    useState<NotificationItem[]>(seedNotifications);
+  const [walkins, setWalkins] = useState<WalkinLead[]>(() => loadStored("walkins", seedWalkins));
+  const [students, setStudents] = useState<StudentRecord[]>(() => loadStored("students", seedStudents));
+  const [batches, setBatches] = useState<BatchRecord[]>(() => loadStored("batches", seedBatches));
+  const [employees, setEmployees] = useState<EmployeeRecord[]>(() => loadStored("employees", seedEmployees));
+  const [classReports, setClassReports] = useState<ClassReportRecord[]>(() => loadStored("classReports", seedClassReports));
+  const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));
+  const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
+  const [attendanceRecords, setAttendanceRecords] = useState(() => loadStored("attendanceRecords", seedAttendanceRecords));
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => loadStored("notifications", seedNotifications));
+
+  useEffect(() => {
+    saveStored("walkins", walkins);
+    saveStored("students", students);
+    saveStored("batches", batches);
+    saveStored("employees", employees);
+    saveStored("classReports", classReports);
+    saveStored("tasks", tasks);
+    saveStored("videoRecords", videoRecords);
+    saveStored("attendanceRecords", attendanceRecords);
+    saveStored("notifications", notifications);
+  }, [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, notifications]);
 
   // All mutations below use functional setState so callbacks stay dependency-free
   // and never capture stale collection lengths.
