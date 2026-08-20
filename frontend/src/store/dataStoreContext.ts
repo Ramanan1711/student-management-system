@@ -8,6 +8,7 @@ import type {
   TaskRecord,
   VideoRecord,
   AttendanceRecord,
+  EmployeeAllocation,
   WalkinLead,
 } from "../data/mockData";
 
@@ -27,6 +28,7 @@ export interface DataStoreValue {
   tasks: TaskRecord[];
   videoRecords: VideoRecord[];
   attendanceRecords: AttendanceRecord[];
+  employeeAllocations: EmployeeAllocation[];
 
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
   addStudent: (student: Omit<StudentRecord, "id">) => StudentRecord;
@@ -34,6 +36,7 @@ export interface DataStoreValue {
   updateStudentFee: (id: string, patch: Partial<StudentRecord["fee"]>) => void;
   addBatch: (batch: Omit<BatchRecord, "id">) => BatchRecord;
   addEmployee: (employee: Omit<EmployeeRecord, "id">) => EmployeeRecord;
+  addEmployeeAllocation: (allocation: Omit<EmployeeAllocation, "id">) => EmployeeAllocation | null;
   addTask: (task: Omit<TaskRecord, "id">) => TaskRecord;
   updateTaskStatus: (id: string, status: TaskRecord["status"]) => void;
   addClassReport: (report: Omit<ClassReportRecord, "id">) => ClassReportRecord;

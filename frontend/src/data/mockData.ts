@@ -106,6 +106,14 @@ export interface EmployeeRecord {
   availability: "Available" | "On Leave" | "Busy";
 }
 
+export interface EmployeeAllocation {
+  id: string;
+  employeeId: string;
+  batchId?: string;
+  studentId?: string;
+  assignedAt: string;
+}
+
 export interface ClassReportRecord {
   id: string;
   date: string;
@@ -526,6 +534,11 @@ export const employees: EmployeeRecord[] = [
     allocatedStudents: 5,
     availability: "On Leave",
   },
+];
+
+export const employeeAllocations: EmployeeAllocation[] = [
+  { id: "ALLOC-001", employeeId: "EMP-101", batchId: "FS-APR-01", assignedAt: "2026-08-01" },
+  { id: "ALLOC-002", employeeId: "EMP-102", batchId: "JAVA-MAY-01", assignedAt: "2026-08-01" },
 ];
 
 export const classReports: ClassReportRecord[] = [

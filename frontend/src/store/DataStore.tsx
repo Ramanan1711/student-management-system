@@ -21,12 +21,14 @@ import {
   tasks as seedTasks,
   videoRecords as seedVideoRecords,
   attendanceRecords as seedAttendanceRecords,
+  employeeAllocations as seedEmployeeAllocations,
   type WalkinLead,
   type StudentRecord,
   type BatchRecord,
   type EmployeeRecord,
   type ClassReportRecord,
   type TaskRecord,
+  type EmployeeAllocation,
 } from "../data/mockData";
 
 const makeId = (prefix: string, count: number, pad = 3) =>
@@ -76,6 +78,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));
   const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
   const [attendanceRecords, setAttendanceRecords] = useState(() => loadStored("attendanceRecords", seedAttendanceRecords));
+  const [employeeAllocations, setEmployeeAllocations] = useState(() => loadStored("employeeAllocations", seedEmployeeAllocations));
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => loadStored("notifications", seedNotifications));
 
   useEffect(() => {
@@ -92,8 +95,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveStored("tasks", tasks);
     saveStored("videoRecords", videoRecords);
     saveStored("attendanceRecords", attendanceRecords);
+    saveStored("employeeAllocations", employeeAllocations);
     saveStored("notifications", notifications);
-  }, [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, notifications]);
+  }, [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, notifications]);
 
   // All mutations below use functional setState so callbacks stay dependency-free
   // and never capture stale collection lengths.
@@ -199,6 +203,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [pushNotification],
   );
 
+  const addEmployeeAllocation = useCallback<DataStoreValue["addEmployeeAllocation"]>(
+    (allocation) => {
+      const duplicate = employeeAllocations.some(
+        (entry) => entry.employeeId === allocation.employeeId && entry.batchId === allocation.batchId && entry.studentId === allocation.studentId,
+      );
+      if (duplicate) return null;
+      const created: EmployeeAllocation = {
+        ...allocation,
+        id: `ALLOC-${Date.now()}`,
+      };
+      setEmployeeAllocations((prev) => [...prev, created]);
+      pushNotification("Employee allocation created", allocation.studentId ?? allocation.batchId ?? "Assignment");
+      return created;
+    },
+    [employeeAllocations, pushNotification],
+  );
+
   const addTask = useCallback<DataStoreValue["addTask"]>(
     (task) => {
       let created!: TaskRecord;
@@ -282,6 +303,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStudentFee,
       addBatch,
       addEmployee,
+      addEmployeeAllocation,
       addTask,
       updateTaskStatus,
       addClassReport,
@@ -295,6 +317,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStudentFee,
       addBatch,
       addEmployee,
+      addEmployeeAllocation,
       addTask,
       updateTaskStatus,
       addClassReport,
@@ -313,10 +336,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       tasks,
       videoRecords,
       attendanceRecords,
+      employeeAllocations,
       notifications,
       ...actions,
     }),
-    [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, notifications, actions],
+    [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, employeeAllocations, notifications, actions],
   );
 
   return (

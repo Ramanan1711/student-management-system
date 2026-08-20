@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
-import type { EmployeeRecord } from "../../data/mockData";
+import type { EmployeeAllocation, EmployeeRecord } from "../../data/mockData";
 
 const employeeTypes: EmployeeRecord["type"][] = [
   "Trainer",
@@ -24,13 +24,16 @@ const initialEmployee: Omit<EmployeeRecord, "id"> = {
 };
 
 export default function Employees() {
-  const { employees, addEmployee } = useDataStore();
+  const { employees, students, batches, employeeAllocations, addEmployee, addEmployeeAllocation } = useDataStore();
   const { showToast } = useToast();
   const [filter, setFilter] = useState<"All" | EmployeeRecord["type"]>("All");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(initialEmployee);
   const [error, setError] = useState("");
+  const [allocationForm, setAllocationForm] = useState<Omit<EmployeeAllocation, "id" | "employeeId" | "assignedAt">>({ batchId: "", studentId: "" });
+  const [allocationEmployeeId, setAllocationEmployeeId] = useState<string | null>(null);
+  const [allocationError, setAllocationError] = useState("");
 
   const filteredEmployees = useMemo(() => {
     const q = search.toLowerCase();
@@ -59,6 +62,28 @@ export default function Employees() {
     setForm(initialEmployee);
     setError("");
     setShowForm(false);
+  };
+
+  const submitAllocation = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!allocationEmployeeId || (!allocationForm.batchId && !allocationForm.studentId)) {
+      setAllocationError("Select a batch or student to create an allocation.");
+      return;
+    }
+    const created = addEmployeeAllocation({
+      employeeId: allocationEmployeeId,
+      batchId: allocationForm.batchId || undefined,
+      studentId: allocationForm.studentId || undefined,
+      assignedAt: new Date().toISOString().slice(0, 10),
+    });
+    if (!created) {
+      setAllocationError("This employee is already assigned to the selected target.");
+      return;
+    }
+    showToast("Employee allocation saved");
+    setAllocationForm({ batchId: "", studentId: "" });
+    setAllocationError("");
+    setAllocationEmployeeId(null);
   };
 
   return (
@@ -105,6 +130,9 @@ export default function Employees() {
         )}
         {filteredEmployees.map((employee) => (
           <div data-testid={`employee-card-${employee.id}`} key={employee.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            {(() => {
+              const allocations = employeeAllocations.filter((allocation) => allocation.employeeId === employee.id);
+              return <>
             <div className="flex items-center justify-between">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
                 {employee.name.slice(0, 1)}
@@ -120,7 +148,17 @@ export default function Employees() {
               <p>{employee.email}</p>
               <p>{employee.phone}</p>
               <p>{employee.allocatedStudents} allocated students</p>
+              <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Assignments</p>
+              {allocations.length === 0 && <p className="text-xs text-slate-500">No assignments yet.</p>}
+              {allocations.slice(0, 3).map((allocation) => {
+                const batch = batches.find((entry) => entry.id === allocation.batchId);
+                const student = students.find((entry) => entry.id === allocation.studentId);
+                return <p key={allocation.id} className="text-xs text-slate-600">{batch?.batchName ?? student?.name ?? allocation.batchId ?? allocation.studentId}</p>;
+              })}
             </div>
+            <button type="button" data-testid={`employee-allocate-${employee.id}`} onClick={() => { setAllocationEmployeeId(employee.id); setAllocationError(""); }} className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Allocate</button>
+              </>;
+            })()}
           </div>
         ))}
       </div>
@@ -165,6 +203,21 @@ export default function Employees() {
                 </button>
               </div>
             </div>
+          </form>
+        </div>
+      )}
+
+      {allocationEmployeeId && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setAllocationEmployeeId(null)}>
+          <form onSubmit={submitAllocation} data-testid="employee-allocation-form" onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-slate-900">Allocate employee</h2><button type="button" data-testid="employee-allocation-close" onClick={() => setAllocationEmployeeId(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button></div>
+            {allocationError && <p data-testid="employee-allocation-error" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{allocationError}</p>}
+            <div className="grid gap-4">
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Batch<select data-testid="employee-allocation-batch" value={allocationForm.batchId ?? ""} onChange={(event) => setAllocationForm({ ...allocationForm, batchId: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal"><option value="">No batch assignment</option>{batches.map((batch) => <option key={batch.id} value={batch.id}>{batch.batchName} ({batch.id})</option>)}</select></label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">Student<select data-testid="employee-allocation-student" value={allocationForm.studentId ?? ""} onChange={(event) => setAllocationForm({ ...allocationForm, studentId: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal"><option value="">No student assignment</option>{students.map((student) => <option key={student.id} value={student.id}>{student.name} ({student.id})</option>)}</select></label>
+              <p className="text-xs text-slate-500">Choose a batch, a student, or both.</p>
+            </div>
+            <div className="mt-5 flex justify-end gap-3"><button type="button" onClick={() => setAllocationEmployeeId(null)} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button><button type="submit" data-testid="employee-allocation-save" className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Save allocation</button></div>
           </form>
         </div>
       )}
