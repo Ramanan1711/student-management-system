@@ -34,6 +34,13 @@ import {
 const makeId = (prefix: string, count: number, pad = 3) =>
   `${prefix}-${new Date().getFullYear()}-${String(count).padStart(pad, "0")}`;
 
+function syncBatchMembers(students: StudentRecord[], batches: BatchRecord[]): BatchRecord[] {
+  return batches.map((batch) => ({
+    ...batch,
+    students: students.filter((student) => student.batchId === batch.id).map((student) => student.id),
+  }));
+}
+
 const STORAGE_PREFIX = "sms.data.";
 
 function loadStored<T>(key: string, fallback: T): T {
@@ -72,7 +79,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [walkins, setWalkins] = useState<WalkinLead[]>(() => loadStored("walkins", seedWalkins));
   const [students, setStudents] = useState<StudentRecord[]>(() => loadStored("students", seedStudents));
-  const [batches, setBatches] = useState<BatchRecord[]>(() => loadStored("batches", seedBatches));
+  const [batches, setBatches] = useState<BatchRecord[]>(() => {
+    const storedStudents = loadStored("students", seedStudents);
+    return syncBatchMembers(storedStudents, loadStored("batches", seedBatches));
+  });
   const [employees, setEmployees] = useState<EmployeeRecord[]>(() => loadStored("employees", seedEmployees));
   const [classReports, setClassReports] = useState<ClassReportRecord[]>(() => loadStored("classReports", seedClassReports));
   const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));
@@ -139,17 +149,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
         };
         return [created, ...prev];
       });
+      setBatches((prev) => syncBatchMembers([created, ...students], prev));
       pushNotification("New student registered", student.name);
       return created;
     },
-    [pushNotification],
+    [pushNotification, students],
   );
 
   const updateStudent = useCallback<DataStoreValue["updateStudent"]>(
     (id, patch) => {
-      setStudents((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-      );
+      setStudents((prev) => {
+        const nextStudents = prev.map((s) => (s.id === id ? { ...s, ...patch } : s));
+        if (patch.batchId !== undefined) {
+          setBatches((prevBatches) => syncBatchMembers(nextStudents, prevBatches));
+        }
+        return nextStudents;
+      });
     },
     [],
   );
