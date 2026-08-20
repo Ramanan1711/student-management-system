@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataStore } from "../../store/dataStoreContext";
+import { useToast } from "../../components/ui/toastContext";
 import { getBatchName } from "../../data/mockData";
+import type { StudentRecord } from "../../data/mockData";
 
 type Metric = "overallPerformance" | "technicalKnowledge" | "practicalSkills" | "communication" | "attendance" | "taskCompletion" | "behaviour";
 
@@ -19,10 +21,14 @@ const CHART_DOMAIN: [number, number] = [0, 100];
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
 
 export default function Performance() {
-  const { students, batches: batchRecords } = useDataStore();
+  const { students, batches: batchRecords, updateStudent } = useDataStore();
+  const { showToast } = useToast();
   const [metric, setMetric] = useState<Metric>("overallPerformance");
   const [batchFilter, setBatchFilter] = useState<string>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<StudentRecord["performance"] | null>(null);
+  const [editError, setEditError] = useState("");
 
   const batches = useMemo(
     () => ["All", ...batchRecords.map((batch) => batch.id)],
@@ -44,6 +50,30 @@ export default function Performance() {
   );
 
   const selected = students.find((s) => s.id === selectedId);
+  const editingStudent = students.find((s) => s.id === editingId);
+
+  const openEditor = (student: StudentRecord) => {
+    setEditingId(student.id);
+    setEditForm({ ...student.performance });
+    setEditError("");
+  };
+
+  const savePerformance = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingId || !editForm) return;
+    const values = Object.entries(editForm).filter(([key]) => key !== "remarks").map(([, value]) => value as number);
+    if (values.some((value) => !Number.isFinite(value) || value < 0 || value > 100)) {
+      setEditError("All performance scores must be between 0 and 100.");
+      return;
+    }
+    const student = students.find((entry) => entry.id === editingId);
+    if (!student) return;
+    updateStudent(editingId, { performance: editForm });
+    showToast(`Performance updated for ${student.name}`);
+    setEditingId(null);
+    setEditForm(null);
+    setEditError("");
+  };
 
   return (
     <div data-testid="performance-page" className="space-y-6">
@@ -114,14 +144,10 @@ export default function Performance() {
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{student.performance.overallPerformance}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      data-testid={`performance-view-${student.id}`}
-                      onClick={() => setSelectedId(student.id)}
-                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                    >
-                      Drill down
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" data-testid={`performance-view-${student.id}`} onClick={() => setSelectedId(student.id)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Drill down</button>
+                      <button type="button" data-testid={`performance-edit-${student.id}`} onClick={() => openEditor(student)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">Edit</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -150,6 +176,29 @@ export default function Performance() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {editingStudent && editForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setEditingId(null)}>
+          <form onSubmit={savePerformance} data-testid="performance-edit-form" onClick={(event) => event.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div><h2 className="text-xl font-bold text-slate-900">Edit Performance</h2><p className="text-sm text-slate-500">{editingStudent.name} · {getBatchName(editingStudent.batchId, batchRecords)}</p></div>
+              <button type="button" data-testid="performance-edit-close" onClick={() => setEditingId(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Close</button>
+            </div>
+            {editError && <p data-testid="performance-edit-error" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{editError}</p>}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(Object.keys(metricLabels) as Metric[]).map((key) => (
+                <label key={key} className="grid gap-1 text-sm font-medium text-slate-700">{metricLabels[key]}
+                  <input data-testid={`performance-edit-${key}`} type="number" min="0" max="100" value={editForm[key]} onChange={(event) => setEditForm({ ...editForm, [key]: Number(event.target.value) })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" />
+                </label>
+              ))}
+              <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">Remarks
+                <textarea data-testid="performance-edit-remarks" value={editForm.remarks} onChange={(event) => setEditForm({ ...editForm, remarks: event.target.value })} rows={3} placeholder="Performance remarks" className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" />
+              </label>
+            </div>
+            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setEditingId(null)} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button><button type="submit" data-testid="performance-save-button" className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Save performance</button></div>
+          </form>
         </div>
       )}
     </div>

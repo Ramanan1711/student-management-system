@@ -47,6 +47,7 @@ const emptyStudent: NewStudent = {
     taskCompletion: 0,
     behaviour: 0,
     overallPerformance: 0,
+    remarks: "",
   },
 };
 

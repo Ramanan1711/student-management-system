@@ -76,6 +76,7 @@ export interface StudentRecord {
     taskCompletion: number;
     behaviour: number;
     overallPerformance: number;
+    remarks: string;
   };
 }
 
@@ -366,6 +367,7 @@ export const students: StudentRecord[] = [
       taskCompletion: 80,
       behaviour: 88,
       overallPerformance: 81,
+      remarks: "Consistent progress with strong practical understanding.",
     },
   },
   {
@@ -410,6 +412,7 @@ export const students: StudentRecord[] = [
       taskCompletion: 90,
       behaviour: 85,
       overallPerformance: 87,
+      remarks: "Excellent participation and task completion.",
     },
   },
   {
@@ -454,6 +457,7 @@ export const students: StudentRecord[] = [
       taskCompletion: 74,
       behaviour: 80,
       overallPerformance: 76,
+      remarks: "Needs more practice with advanced concepts.",
     },
   },
 ];
