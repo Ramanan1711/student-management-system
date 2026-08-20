@@ -127,7 +127,7 @@ export default function Reports() {
       <div data-testid="reports-chart-card" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">{view === "progress" ? "Progress overview" : view === "attendance" ? "Attendance overview" : "Fee overview"}</h2>
 
-        <div className="h-72">
+        <div className="reports-chart-area h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyProgress}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

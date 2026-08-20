@@ -80,8 +80,16 @@ select {
 
   .app-frame > aside,
   .app-frame > div > header,
-  .reports-toolbar {
+  .reports-toolbar,
+  [data-testid="toast-container"] {
     display: none !important;
+  }
+
+  .reports-chart-area,
+  .reports-chart-area .recharts-responsive-container {
+    width: 100% !important;
+    height: 360px !important;
+    min-width: 0 !important;
   }
 
   [data-testid="reports-chart-card"],
