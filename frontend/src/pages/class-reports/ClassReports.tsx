@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
+import { getBatchName } from "../../data/mockData";
 import type { ClassReportRecord } from "../../data/mockData";
 import { Pagination, SortButton } from "../../components/tables/TableControls";
 import { useTableControls } from "../../hooks/useTableControls";
 
 const initialReport: Omit<ClassReportRecord, "id"> = {
   date: new Date().toISOString().slice(0, 10),
-  batch: "",
+  batchId: "",
   trainer: "",
   topic: "",
   module: "",
@@ -36,30 +37,27 @@ export default function ClassReports() {
     [employees],
   );
 
-  const batchOptions = useMemo(
-    () => ["All", ...Array.from(new Set(classReports.map((r) => r.batch)))],
-    [classReports],
-  );
+  const batchOptions = useMemo(() => ["All", ...batches.map((batch) => batch.id)], [batches]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return classReports.filter((report) => {
-      const matchesText = [report.topic, report.trainer, report.module, report.batch]
+      const matchesText = [report.topic, report.trainer, report.module, report.batchId, getBatchName(report.batchId, batches)]
         .join(" ")
         .toLowerCase()
         .includes(q);
-      const matchesBatch = batchFilter === "All" || report.batch === batchFilter;
+      const matchesBatch = batchFilter === "All" || report.batchId === batchFilter;
       return matchesText && matchesBatch;
     });
-  }, [classReports, search, batchFilter]);
+  }, [classReports, search, batchFilter, batches]);
 
-  const table = useTableControls(filtered, 8, (report, key) => report[key as "date" | "batch" | "trainer" | "topic" | "taskStatus" | "studentAttendance"]);
+  const table = useTableControls(filtered, 8, (report, key) => report[key as "date" | "batchId" | "trainer" | "topic" | "taskStatus" | "studentAttendance"]);
 
   const selected = classReports.find((r) => r.id === selectedId);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.date || !form.batch || !form.trainer || !form.topic || !form.module || !form.description) {
+    if (!form.date || !form.batchId || !form.trainer || !form.topic || !form.module || !form.description) {
       setError("Date, batch, trainer, topic, module, and description are required.");
       return;
     }
@@ -118,7 +116,7 @@ export default function ClassReports() {
             <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="px-4 py-3"><SortButton label="Date" active={table.sortKey === "date"} direction={table.sortKey === "date" ? table.sortDirection : null} onClick={() => table.sortBy("date")} /></th>
-                <th className="px-4 py-3"><SortButton label="Batch" active={table.sortKey === "batch"} direction={table.sortKey === "batch" ? table.sortDirection : null} onClick={() => table.sortBy("batch")} /></th>
+                <th className="px-4 py-3"><SortButton label="Batch" active={table.sortKey === "batchId"} direction={table.sortKey === "batchId" ? table.sortDirection : null} onClick={() => table.sortBy("batchId")} /></th>
                 <th className="px-4 py-3"><SortButton label="Trainer" active={table.sortKey === "trainer"} direction={table.sortKey === "trainer" ? table.sortDirection : null} onClick={() => table.sortBy("trainer")} /></th>
                 <th className="px-4 py-3"><SortButton label="Topic" active={table.sortKey === "topic"} direction={table.sortKey === "topic" ? table.sortDirection : null} onClick={() => table.sortBy("topic")} /></th>
                 <th className="px-4 py-3"><SortButton label="Task Status" active={table.sortKey === "taskStatus"} direction={table.sortKey === "taskStatus" ? table.sortDirection : null} onClick={() => table.sortBy("taskStatus")} /></th>
@@ -135,7 +133,7 @@ export default function ClassReports() {
               {table.paginatedRows.map((report) => (
                 <tr key={report.id} className="border-t border-slate-200 hover:bg-slate-50">
                   <td className="px-4 py-3 text-slate-600">{report.date}</td>
-                  <td className="px-4 py-3 text-slate-600">{report.batch}</td>
+                  <td className="px-4 py-3 text-slate-600">{getBatchName(report.batchId, batches)}</td>
                   <td className="px-4 py-3 text-slate-600">{report.trainer}</td>
                   <td className="px-4 py-3 text-slate-800 font-medium">{report.topic}</td>
                   <td data-testid={`class-report-status-${report.id}`} className="px-4 py-3">
@@ -166,7 +164,7 @@ export default function ClassReports() {
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">{selected.topic}</h2>
-                <p className="text-sm text-slate-500">{selected.batch} · {selected.trainer} · {selected.date}</p>
+                <p className="text-sm text-slate-500">{getBatchName(selected.batchId, batches)} · {selected.trainer} · {selected.date}</p>
               </div>
               <button data-testid="class-report-detail-close" onClick={() => setSelectedId(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Close</button>
             </div>
@@ -206,9 +204,9 @@ export default function ClassReports() {
                 <input data-testid="class-report-date-input" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" />
               </label>
               <label className="grid gap-1 text-sm font-medium text-slate-700">Batch
-                <select data-testid="class-report-batch-select" value={form.batch} onChange={(event) => setForm({ ...form, batch: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal">
+                <select data-testid="class-report-batch-select" value={form.batchId} onChange={(event) => setForm({ ...form, batchId: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal">
                   <option value="">Select batch</option>
-                  {batches.map((batch) => <option key={batch.id} value={batch.batchName}>{batch.batchName}</option>)}
+                  {batches.map((batch) => <option key={batch.id} value={batch.id}>{batch.batchName} ({batch.id})</option>)}
                 </select>
               </label>
               <label className="grid gap-1 text-sm font-medium text-slate-700">Trainer

@@ -12,7 +12,7 @@
     "course": "Full Stack Development",
     "courseDuration": "6 Months",
     "joiningDate": "2026-04-10",
-    "batch": "FS-APR-01",
+    "batchId": "FS-APR-01",
     "mode": "Offline",
     "assignedCounsellor": "Priya"
   },
@@ -29,7 +29,7 @@
     "course": "Full Stack Development",
     "courseDuration": "6 Months",
     "joiningDate": "2026-04-12",
-    "batch": "FS-APR-01",
+    "batchId": "FS-APR-01",
     "mode": "Online",
     "assignedCounsellor": "Rahul"
   },
@@ -46,7 +46,7 @@
     "course": "Java Development",
     "courseDuration": "5 Months",
     "joiningDate": "2026-05-02",
-    "batch": "JAVA-MAY-01",
+    "batchId": "JAVA-MAY-01",
     "mode": "Offline",
     "assignedCounsellor": "Priya"
   }

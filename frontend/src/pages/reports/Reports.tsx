@@ -3,7 +3,7 @@ import { Download, Printer } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
-import { monthlyProgress } from "../../data/mockData";
+import { getBatchName, monthlyProgress } from "../../data/mockData";
 import { Pagination, SortButton } from "../../components/tables/TableControls";
 import { useTableControls } from "../../hooks/useTableControls";
 
@@ -13,18 +13,18 @@ const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
 type ReportView = "attendance" | "fee" | "progress";
 
 export default function Reports() {
-  const { students } = useDataStore();
+  const { students, batches: batchRecords } = useDataStore();
   const { showToast } = useToast();
   const [view, setView] = useState<ReportView>("progress");
   const [batchFilter, setBatchFilter] = useState<string>("All");
 
   const batches = useMemo(
-    () => ["All", ...Array.from(new Set(students.map((s) => s.batch)))],
-    [students],
+    () => ["All", ...batchRecords.map((batch) => batch.id)],
+    [batchRecords],
   );
 
   const filteredStudents = useMemo(
-    () => (batchFilter === "All" ? students : students.filter((s) => s.batch === batchFilter)),
+    () => (batchFilter === "All" ? students : students.filter((s) => s.batchId === batchFilter)),
     [students, batchFilter],
   );
 
@@ -34,7 +34,8 @@ export default function Reports() {
       if (view === "fee") return student.fee.pendingAmount;
       return student.performance.overallPerformance;
     }
-    return student[key as "name" | "batch"];
+    if (key === "batch") return getBatchName(student.batchId, batchRecords);
+    return student[key as "name"];
   });
 
   const totals = useMemo(() => {
@@ -59,7 +60,7 @@ export default function Reports() {
       ["Name", "Batch", "Course", "Attendance %", "Pending Fee", "Overall Performance"],
       ...filteredStudents.map((s) => [
         s.name,
-        s.batch,
+        getBatchName(s.batchId, batchRecords),
         s.course,
         s.attendance.attendancePercentage,
         s.fee.pendingAmount,
@@ -166,7 +167,7 @@ export default function Reports() {
               {table.paginatedRows.map((student) => (
                 <tr key={student.id} data-testid={`reports-row-${student.id}`} className="border-t border-slate-200">
                   <td className="px-4 py-3 font-medium text-slate-900">{student.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{student.batch}</td>
+                  <td className="px-4 py-3 text-slate-600">{getBatchName(student.batchId, batchRecords)}</td>
                   {view === "attendance" && <td className="px-4 py-3 text-slate-600">{student.attendance.attendancePercentage}%</td>}
                   {view === "fee" && <td className="px-4 py-3 text-slate-600">₹{student.fee.pendingAmount.toLocaleString("en-IN")}</td>}
                   {view === "progress" && <td className="px-4 py-3 text-slate-600">{student.performance.overallPerformance}%</td>}

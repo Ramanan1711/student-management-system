@@ -17,7 +17,7 @@ const emptyStudent: NewStudent = {
   course: "Full Stack Development",
   courseDuration: "6 Months",
   joiningDate: new Date().toISOString().slice(0, 10),
-  batch: "FS-APR-01",
+  batchId: "FS-APR-01",
   mode: "Offline",
   assignedCounsellor: "Priya",
   fee: {
@@ -106,7 +106,7 @@ export default function Registration() {
           <input value={student.course} onChange={(event) => updateField("course", event.target.value)} placeholder="Course" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
           <input value={student.courseDuration} onChange={(event) => updateField("courseDuration", event.target.value)} placeholder="Course Duration" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
           <input value={student.joiningDate} onChange={(event) => updateField("joiningDate", event.target.value)} type="date" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" />
-          <select data-testid="registration-batch-select" value={student.batch} onChange={(event) => updateField("batch", event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm">
+          <select data-testid="registration-batch-select" value={student.batchId} onChange={(event) => updateField("batchId", event.target.value)} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm">
             {batches.map((batch) => (
               <option key={batch.id} value={batch.id}>{batch.batchName} ({batch.id})</option>
             ))}

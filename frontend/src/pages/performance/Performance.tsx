@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataStore } from "../../store/dataStoreContext";
+import { getBatchName } from "../../data/mockData";
 
 type Metric = "overallPerformance" | "technicalKnowledge" | "practicalSkills" | "communication" | "attendance" | "taskCompletion" | "behaviour";
 
@@ -18,18 +19,18 @@ const CHART_DOMAIN: [number, number] = [0, 100];
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
 
 export default function Performance() {
-  const { students } = useDataStore();
+  const { students, batches: batchRecords } = useDataStore();
   const [metric, setMetric] = useState<Metric>("overallPerformance");
   const [batchFilter, setBatchFilter] = useState<string>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const batches = useMemo(
-    () => ["All", ...Array.from(new Set(students.map((s) => s.batch)))],
-    [students],
+    () => ["All", ...batchRecords.map((batch) => batch.id)],
+    [batchRecords],
   );
 
   const filtered = useMemo(
-    () => (batchFilter === "All" ? students : students.filter((s) => s.batch === batchFilter)),
+    () => (batchFilter === "All" ? students : students.filter((s) => s.batchId === batchFilter)),
     [students, batchFilter],
   );
 
@@ -104,7 +105,7 @@ export default function Performance() {
               {filtered.map((student) => (
                 <tr key={student.id} className="border-t border-slate-200 hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900">{student.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{student.batch}</td>
+                  <td className="px-4 py-3 text-slate-600">{getBatchName(student.batchId, batchRecords)}</td>
                   <td className="px-4 py-3 text-slate-600">{student.performance.technicalKnowledge}</td>
                   <td className="px-4 py-3 text-slate-600">{student.performance.practicalSkills}</td>
                   <td className="px-4 py-3 text-slate-600">{student.performance.communication}</td>
@@ -135,7 +136,7 @@ export default function Performance() {
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">{selected.name}</h2>
-                <p className="text-sm text-slate-500">{selected.batch} · {selected.course}</p>
+                <p className="text-sm text-slate-500">{getBatchName(selected.batchId, batchRecords)} · {selected.course}</p>
               </div>
               <button data-testid="performance-detail-close" onClick={() => setSelectedId(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Close</button>
             </div>

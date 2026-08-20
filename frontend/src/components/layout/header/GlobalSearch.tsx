@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 
 import { useDataStore } from "../../../store/dataStoreContext";
+import { getBatchName } from "../../../data/mockData";
 
 interface SearchResult {
   key: string;
@@ -12,7 +13,7 @@ interface SearchResult {
 }
 
 export default function GlobalSearch() {
-  const { students, walkins } = useDataStore();
+  const { students, batches, walkins } = useDataStore();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -23,7 +24,7 @@ export default function GlobalSearch() {
     if (!q) return [];
     const studentHits = students
       .filter((s) =>
-        [s.name, s.course, s.batch, s.mobile, s.email]
+        [s.name, s.course, s.batchId, getBatchName(s.batchId, batches), s.mobile, s.email]
           .join(" ")
           .toLowerCase()
           .includes(q),
@@ -50,7 +51,7 @@ export default function GlobalSearch() {
         path: "/walkins",
       }));
     return [...studentHits, ...walkinHits];
-  }, [query, students, walkins]);
+  }, [query, students, batches, walkins]);
 
   useEffect(() => {
     const handler = (event: MouseEvent) => {

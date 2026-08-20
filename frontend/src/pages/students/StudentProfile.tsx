@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDataStore } from "../../store/dataStoreContext";
+import { getBatchName } from "../../data/mockData";
 
 const profileTabs = [
   "Overview",
@@ -16,7 +17,7 @@ type ProfileTab = (typeof profileTabs)[number];
 
 export default function StudentProfile() {
   const { studentId } = useParams();
-  const { students, tasks, classReports, videoRecords } = useDataStore();
+  const { students, batches, tasks, classReports, videoRecords } = useDataStore();
   const [activeTab, setActiveTab] = useState<ProfileTab>("Overview");
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const student = students.find((entry) => entry.id === studentId);
@@ -26,7 +27,7 @@ export default function StudentProfile() {
   }
 
   const studentTasks = tasks.filter((task) => task.studentId === student.id);
-  const studentReports = classReports.filter((report) => report.batch === student.batch);
+  const studentReports = classReports.filter((report) => report.batchId === student.batchId);
   const studentVideos = videoRecords.filter((video) => video.studentId === student.id);
   const selectedVideo = studentVideos.find((video) => video.id === selectedVideoId);
   const courseProgress = student.performance.overallPerformance;
@@ -68,7 +69,7 @@ export default function StudentProfile() {
     </div>
   );
 
-  const renderRegistration = () => <InfoSection title="Registration & course details" items={[["Student ID", student.id], ["Qualification", student.qualification], ["Date of birth", student.dateOfBirth], ["Joining date", student.joiningDate], ["Course", student.course], ["Duration", student.courseDuration], ["Batch", student.batch], ["Address", student.address]]} />;
+  const renderRegistration = () => <InfoSection title="Registration & course details" items={[["Student ID", student.id], ["Qualification", student.qualification], ["Date of birth", student.dateOfBirth], ["Joining date", student.joiningDate], ["Course", student.course], ["Duration", student.courseDuration], ["Batch", getBatchName(student.batchId, batches)], ["Address", student.address]]} />;
   const renderAttendance = () => <InfoSection title="Attendance history" items={[["Total classes", String(student.attendance.totalClasses)], ["Present", String(student.attendance.present)], ["Absent", String(student.attendance.absent)], ["Leave", String(student.attendance.leave)], ["Attendance", `${student.attendance.attendancePercentage}%`]]} />;
   const renderFees = () => <InfoSection title="Fee ledger" items={[["Course fee", `₹${student.fee.courseFee.toLocaleString("en-IN")}`], ["Discount", `₹${student.fee.discount.toLocaleString("en-IN")}`], ["Final fee", `₹${student.fee.finalFee.toLocaleString("en-IN")}`], ["Amount paid", `₹${student.fee.amountPaid.toLocaleString("en-IN")}`], ["Pending amount", `₹${student.fee.pendingAmount.toLocaleString("en-IN")}`], ["Payment date", student.fee.paymentDate], ["Payment mode", student.fee.paymentMode], ["Next payment", student.fee.nextPaymentDate]]} />;
   const renderPerformance = () => <InfoSection title="Performance metrics" items={Object.entries(student.performance).map(([label, value]) => [label.replace(/([A-Z])/g, " $1"), `${value}%`])} />;
@@ -107,7 +108,7 @@ export default function StudentProfile() {
       <div className="grid gap-4 md:grid-cols-4">
         {[
           { label: "Course", value: student.course },
-          { label: "Batch", value: student.batch },
+          { label: "Batch", value: getBatchName(student.batchId, batches) },
           { label: "Course Progress", value: `${courseProgress}%` },
           { label: "Attendance", value: `${student.attendance.attendancePercentage}%` },
         ].map((stat) => (

@@ -47,7 +47,7 @@ export interface StudentRecord {
   course: string;
   courseDuration: string;
   joiningDate: string;
-  batch: string;
+  batchId: string;
   mode: "Online" | "Offline" | "Hybrid";
   assignedCounsellor: string;
   fee: {
@@ -91,6 +91,10 @@ export interface BatchRecord {
   students: string[];
 }
 
+export function getBatchName(batchId: string, batchList: BatchRecord[]): string {
+  return batchList.find((batch) => batch.id === batchId)?.batchName ?? batchId;
+}
+
 export interface EmployeeRecord {
   id: string;
   name: string;
@@ -105,7 +109,7 @@ export interface EmployeeRecord {
 export interface ClassReportRecord {
   id: string;
   date: string;
-  batch: string;
+  batchId: string;
   trainer: string;
   topic: string;
   module: string;
@@ -310,7 +314,7 @@ export const students: StudentRecord[] = [
     course: "Full Stack Development",
     courseDuration: "6 Months",
     joiningDate: "2026-04-10",
-    batch: "FS-APR-01",
+    batchId: "FS-APR-01",
     mode: "Offline",
     assignedCounsellor: "Priya",
     fee: {
@@ -354,7 +358,7 @@ export const students: StudentRecord[] = [
     course: "Full Stack Development",
     courseDuration: "6 Months",
     joiningDate: "2026-04-12",
-    batch: "FS-APR-01",
+    batchId: "FS-APR-01",
     mode: "Online",
     assignedCounsellor: "Rahul",
     fee: {
@@ -398,7 +402,7 @@ export const students: StudentRecord[] = [
     course: "Java Development",
     courseDuration: "5 Months",
     joiningDate: "2026-05-02",
-    batch: "JAVA-MAY-01",
+    batchId: "JAVA-MAY-01",
     mode: "Offline",
     assignedCounsellor: "Priya",
     fee: {
@@ -514,7 +518,7 @@ export const classReports: ClassReportRecord[] = [
   {
     id: "CR-001",
     date: "2026-08-01",
-    batch: "FS-APR-01",
+    batchId: "FS-APR-01",
     trainer: "Sathish Kumar",
     topic: "React Fundamentals",
     module: "Frontend Basics",
@@ -529,7 +533,7 @@ export const classReports: ClassReportRecord[] = [
   {
     id: "CR-002",
     date: "2026-08-03",
-    batch: "JAVA-MAY-01",
+    batchId: "JAVA-MAY-01",
     trainer: "Deepak Nair",
     topic: "OOP Concepts",
     module: "Core Java",
@@ -544,7 +548,7 @@ export const classReports: ClassReportRecord[] = [
   {
     id: "CR-003",
     date: "2026-08-05",
-    batch: "FS-APR-01",
+    batchId: "FS-APR-01",
     trainer: "Sathish Kumar",
     topic: "CSS Grid & Responsive Design",
     module: "Frontend Design",

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
+import { getBatchName } from "../../data/mockData";
 
 type AttendanceMark = "Present" | "Absent" | "Leave";
 
@@ -11,7 +12,7 @@ const markStyle: Record<AttendanceMark, string> = {
 };
 
 export default function Attendance() {
-  const { students, markAttendance } = useDataStore();
+  const { students, batches: batchRecords, markAttendance } = useDataStore();
   const { showToast } = useToast();
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -19,7 +20,7 @@ export default function Attendance() {
   const [session, setSession] = useState<Record<string, AttendanceMark>>({});
 
   const batches = useMemo(() => {
-    const unique = Array.from(new Set(students.map((s) => s.batch)));
+    const unique = Array.from(new Set(students.map((s) => s.batchId)));
     return ["All", ...unique];
   }, [students]);
 
@@ -27,7 +28,7 @@ export default function Attendance() {
     () =>
       batchFilter === "All"
         ? students
-        : students.filter((s) => s.batch === batchFilter),
+        : students.filter((s) => s.batchId === batchFilter),
     [students, batchFilter],
   );
 
@@ -131,7 +132,7 @@ export default function Attendance() {
                 return (
                   <tr key={student.id} data-testid={`attendance-row-${student.id}`} className="border-t border-slate-200">
                     <td className="px-4 py-3 font-medium text-slate-900">{student.name}</td>
-                    <td className="px-4 py-3 text-slate-600">{student.batch}</td>
+                    <td className="px-4 py-3 text-slate-600">{getBatchName(student.batchId, batchRecords)}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {(["Present", "Absent", "Leave"] as AttendanceMark[]).map((mark) => (

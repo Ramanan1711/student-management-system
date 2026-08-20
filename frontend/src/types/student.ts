@@ -19,7 +19,7 @@ export interface Student {
   course: string;
   courseDuration: string;
   joiningDate: string;
-  batch: string;
+  batchId: string;
   mode: "Online" | "Offline" | "Hybrid";
   assignedCounsellor: string;
 }

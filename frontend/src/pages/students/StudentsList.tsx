@@ -4,9 +4,10 @@ import { Search } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { Pagination, SortButton } from "../../components/tables/TableControls";
 import { useTableControls } from "../../hooks/useTableControls";
+import { getBatchName } from "../../data/mockData";
 
 export default function StudentsList() {
-  const { students } = useDataStore();
+  const { students, batches } = useDataStore();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState<"All" | "Online" | "Offline" | "Hybrid">("All");
@@ -15,18 +16,19 @@ export default function StudentsList() {
     const search = query.toLowerCase();
 
     return students.filter((student) => {
-      const matchesText = [student.name, student.course, student.batch, student.mobile, student.email]
+      const matchesText = [student.name, student.course, student.batchId, getBatchName(student.batchId, batches), student.mobile, student.email]
         .join(" ")
         .toLowerCase()
         .includes(search);
       const matchesMode = modeFilter === "All" || student.mode === modeFilter;
       return matchesText && matchesMode;
     });
-  }, [query, modeFilter, students]);
+  }, [query, modeFilter, students, batches]);
 
   const table = useTableControls(filteredStudents, 8, (student, key) => {
     if (key === "pending") return student.fee.pendingAmount;
-    return student[key as "name" | "course" | "batch" | "mode"];
+    if (key === "batch") return getBatchName(student.batchId, batches);
+    return student[key as "name" | "course" | "mode"];
   });
 
   return (
@@ -100,7 +102,7 @@ export default function StudentsList() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{student.course}</td>
-                  <td className="px-4 py-3 text-slate-600">{student.batch}</td>
+                  <td className="px-4 py-3 text-slate-600">{getBatchName(student.batchId, batches)}</td>
                   <td className="px-4 py-3 text-slate-600">{student.mode}</td>
                   <td className="px-4 py-3 text-slate-600">₹{student.fee.pendingAmount.toLocaleString("en-IN")}</td>
                   <td className="px-4 py-3">
