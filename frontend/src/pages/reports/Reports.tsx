@@ -3,12 +3,13 @@ import { Download, Printer } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
-import { getBatchName, monthlyProgress } from "../../data/mockData";
+import { getBatchName } from "../../data/mockData";
 import { Pagination, SortButton } from "../../components/tables/TableControls";
 import { useTableControls } from "../../hooks/useTableControls";
 
 const CHART_DOMAIN: [number, number] = [0, 100];
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 type ReportView = "attendance" | "fee" | "progress";
 
@@ -54,6 +55,37 @@ export default function Reports() {
       ),
     };
   }, [filteredStudents]);
+
+  const chartData = useMemo(() => {
+    const year = new Date().getFullYear();
+    return MONTHS.map((name, monthIndex) => {
+      const monthEnd = new Date(year, monthIndex + 1, 0);
+      const activeStudents = filteredStudents.filter((student) => new Date(`${student.joiningDate}T00:00:00`) <= monthEnd);
+      let value = 0;
+
+      if (view === "fee") {
+        value = filteredStudents
+          .filter((student) => {
+            const paymentDate = new Date(`${student.fee.paymentDate}T00:00:00`);
+            return paymentDate.getFullYear() === year && paymentDate.getMonth() === monthIndex;
+          })
+          .reduce((sum, student) => sum + student.fee.amountPaid, 0);
+      } else if (activeStudents.length > 0) {
+        value = Math.round(
+          activeStudents.reduce(
+            (sum, student) => sum + (view === "attendance" ? student.attendance.attendancePercentage : student.performance.overallPerformance),
+            0,
+          ) / activeStudents.length,
+        );
+      }
+
+      return { name, value };
+    });
+  }, [filteredStudents, view]);
+
+  const chartDomain: [number, number] = view === "fee"
+    ? [0, Math.max(1000, Math.ceil(Math.max(...chartData.map((entry) => entry.value), 0) * 1.2 / 1000) * 1000)]
+    : CHART_DOMAIN;
 
   const exportCSV = () => {
     const rows = [
@@ -133,21 +165,21 @@ export default function Reports() {
 
         <div className="reports-chart-area reports-chart-responsive h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyProgress}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={60} stroke="#64748b" />
-              <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
-              <Tooltip />
+              <YAxis stroke="#64748b" domain={chartDomain} tickFormatter={(value) => view === "fee" ? `₹${Number(value).toLocaleString("en-IN")}` : `${value}%`} />
+              <Tooltip formatter={(value) => view === "fee" ? `₹${Number(value).toLocaleString("en-IN")}` : `${value}%`} />
               <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="reports-chart-print" aria-hidden="true">
-          <BarChart width={660} height={360} data={monthlyProgress} margin={{ top: 8, right: 12, bottom: 52, left: 8 }}>
+          <BarChart width={660} height={360} data={chartData} margin={{ top: 8, right: 12, bottom: 52, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={60} stroke="#64748b" />
-            <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
+            <YAxis stroke="#64748b" domain={chartDomain} tickFormatter={(value) => view === "fee" ? `₹${Number(value).toLocaleString("en-IN")}` : `${value}%`} />
             <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
           </BarChart>
         </div>
