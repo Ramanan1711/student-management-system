@@ -3,21 +3,7 @@ import { Download, Printer } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
-
-const monthlyProgress = [
-  { name: "Jan", value: 48 },
-  { name: "Feb", value: 56 },
-  { name: "Mar", value: 62 },
-  { name: "Apr", value: 71 },
-  { name: "May", value: 77 },
-  { name: "Jun", value: 82 },
-  { name: "Jul", value: 79 },
-  { name: "Aug", value: 84 },
-  { name: "Sep", value: 88 },
-  { name: "Oct", value: 86 },
-  { name: "Nov", value: 91 },
-  { name: "Dec", value: 94 },
-];
+import { monthlyProgress } from "../../data/mockData";
 
 const CHART_DOMAIN: [number, number] = [0, 100];
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];

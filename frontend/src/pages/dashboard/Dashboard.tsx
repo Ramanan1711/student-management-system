@@ -3,54 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BriefcaseBusiness, ChartColumnBig, TrendingUp, Users } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
-
-const revenueOverview = [
-  { month: "JAN", value: 48 },
-  { month: "FEB", value: 62 },
-  { month: "MAR", value: 54 },
-  { month: "APR", value: 72 },
-  { month: "MAY", value: 58 },
-  { month: "JUN", value: 80 },
-  { month: "JUL", value: 66 },
-  { month: "AUG", value: 95 },
-  { month: "SEP", value: 74 },
-  { month: "OCT", value: 64 },
-  { month: "NOV", value: 70 },
-  { month: "DEC", value: 60 },
-];
-
-const dailyRevenueOverview = [
-  { month: "01", value: 18 },
-  { month: "02", value: 24 },
-  { month: "03", value: 16 },
-  { month: "04", value: 30 },
-  { month: "05", value: 22 },
-  { month: "06", value: 28 },
-  { month: "07", value: 34 },
-  { month: "08", value: 26 },
-  { month: "09", value: 38 },
-  { month: "10", value: 31 },
-  { month: "11", value: 42 },
-  { month: "12", value: 36 },
-  { month: "13", value: 45 },
-  { month: "14", value: 39 },
-  { month: "15", value: 48 },
-  { month: "16", value: 43 },
-  { month: "17", value: 52 },
-  { month: "18", value: 46 },
-  { month: "19", value: 56 },
-  { month: "20", value: 50 },
-  { month: "21", value: 61 },
-  { month: "22", value: 54 },
-  { month: "23", value: 64 },
-  { month: "24", value: 58 },
-  { month: "25", value: 68 },
-  { month: "26", value: 62 },
-  { month: "27", value: 72 },
-  { month: "28", value: 66 },
-  { month: "29", value: 76 },
-  { month: "30", value: 70 },
-];
+import { dailyRevenueOverview, revenueOverview } from "../../data/mockData";
 
 const currentDate = new Date();
 const currentMonth = currentDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
