@@ -34,12 +34,12 @@ export default function Attendance() {
 
   const totals = useMemo(() => {
     return {
-      totalClasses: students.reduce((sum, s) => sum + s.attendance.totalClasses, 0),
-      present: students.reduce((sum, s) => sum + s.attendance.present, 0),
-      absent: students.reduce((sum, s) => sum + s.attendance.absent, 0),
-      leave: students.reduce((sum, s) => sum + s.attendance.leave, 0),
+      totalClasses: visibleStudents.reduce((sum, s) => sum + s.attendance.totalClasses, 0),
+      present: visibleStudents.reduce((sum, s) => sum + s.attendance.present, 0),
+      absent: visibleStudents.reduce((sum, s) => sum + s.attendance.absent, 0),
+      leave: visibleStudents.reduce((sum, s) => sum + s.attendance.leave, 0),
     };
-  }, [students]);
+  }, [visibleStudents]);
 
   const setMark = (studentId: string, mark: AttendanceMark) => {
     setSession((prev) => ({ ...prev, [studentId]: mark }));
