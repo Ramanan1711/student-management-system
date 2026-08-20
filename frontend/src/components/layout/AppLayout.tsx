@@ -16,14 +16,14 @@ export default function AppLayout() {
   }, []);
 
   return (
-    <div className="h-screen bg-[#eef3f9] lg:p-4">
-      <div className="mx-auto flex h-screen max-w-[1500px] overflow-hidden border border-slate-200 bg-[#f4f7fb] shadow-[0_24px_70px_rgba(15,23,42,0.08)] lg:h-[calc(100vh-2rem)] lg:rounded-[24px]">
+    <div className="app-shell h-screen bg-[#eef3f9] lg:p-4">
+      <div className="app-frame mx-auto flex h-screen max-w-[1500px] overflow-hidden border border-slate-200 bg-[#f4f7fb] shadow-[0_24px_70px_rgba(15,23,42,0.08)] lg:h-[calc(100vh-2rem)] lg:rounded-[24px]">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Header onMenuClick={() => setSidebarOpen((value) => !value)} />
 
-          <main className="flex-1 overflow-y-auto bg-[#f4f7fb] p-4 sm:p-6 lg:p-8">
+          <main className="app-main flex-1 overflow-y-auto bg-[#f4f7fb] p-4 sm:p-6 lg:p-8">
             <Outlet />
           </main>
         </div>

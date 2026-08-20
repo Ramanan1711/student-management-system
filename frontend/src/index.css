@@ -36,3 +36,56 @@ textarea,
 select {
   font: inherit;
 }
+
+@page {
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body,
+  #root,
+  .app-shell,
+  .app-frame,
+  .app-main {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .app-shell,
+  .app-frame,
+  .app-main {
+    overflow: visible !important;
+  }
+
+  .app-shell {
+    padding: 0 !important;
+  }
+
+  .app-frame {
+    display: block !important;
+    max-width: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .app-main {
+    padding: 0 !important;
+    background: #fff;
+  }
+
+  .app-frame > aside,
+  .app-frame > div > header,
+  .reports-toolbar {
+    display: none !important;
+  }
+
+  [data-testid="reports-chart-card"],
+  [data-testid="reports-table"] {
+    break-inside: avoid;
+  }
+}
