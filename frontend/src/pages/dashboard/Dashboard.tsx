@@ -52,6 +52,10 @@ const dailyRevenueOverview = [
   { month: "30", value: 70 },
 ];
 
+const currentDate = new Date();
+const currentMonth = currentDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
+const currentDay = String(currentDate.getDate()).padStart(2, "0");
+
 const AXIS_TICK = { fontSize: 10, fill: "#64748b" };
 const BAR_RADIUS: [number, number, number, number] = [6, 6, 0, 0];
 
@@ -168,8 +172,16 @@ export default function Dashboard() {
                 {chartData.map((entry) => (
                   <Cell
                     key={entry.month}
-                    fill={entry.month === "AUG" ? "#6b7f9a" : "#dfe5ea"}
-                    opacity={entry.month === "AUG" ? 1 : 0.95}
+                    fill={
+                      (period === "30 Days" ? entry.month === currentDay : entry.month === currentMonth)
+                        ? "#6b7f9a"
+                        : "#dfe5ea"
+                    }
+                    opacity={
+                      (period === "30 Days" ? entry.month === currentDay : entry.month === currentMonth)
+                        ? 1
+                        : 0.95
+                    }
                   />
                 ))}
               </Bar>
