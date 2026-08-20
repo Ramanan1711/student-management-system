@@ -103,9 +103,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return syncBatchMembers(storedStudents, loadStored("batches", seedBatches));
   });
   const [employees, setEmployees] = useState<EmployeeRecord[]>(() => {
+    const storedStudents = loadStored("students", seedStudents);
     const storedBatches = loadStored("batches", seedBatches);
     const storedAllocations = loadStored("employeeAllocations", seedEmployeeAllocations);
-    return syncEmployeeCounts(loadStored("employees", seedEmployees), storedAllocations, storedBatches);
+    const syncedBatches = syncBatchMembers(storedStudents, storedBatches);
+    return syncEmployeeCounts(loadStored("employees", seedEmployees), storedAllocations, syncedBatches);
   });
   const [classReports, setClassReports] = useState<ClassReportRecord[]>(() => loadStored("classReports", seedClassReports));
   const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));

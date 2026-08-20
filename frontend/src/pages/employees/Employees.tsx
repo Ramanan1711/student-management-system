@@ -154,7 +154,8 @@ export default function Employees() {
             <div className="mt-4 space-y-2 text-sm text-slate-600">
               <p>{employee.email}</p>
               <p>{employee.phone}</p>
-              <p>{allocatedStudentIds.size} allocated students</p>
+              <p>{allocations.length} allocations</p>
+              <p className="text-xs text-slate-500">{allocatedStudentIds.size} unique students covered</p>
               <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Assignments</p>
               {allocations.length === 0 && <p className="text-xs text-slate-500">No assignments yet.</p>}
               {allocations.slice(0, 3).map((allocation) => {
