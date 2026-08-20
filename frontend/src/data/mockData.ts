@@ -211,7 +211,7 @@ export const videoRecords: VideoRecord[] = [
     date: "2026-08-12",
     duration: "42 min",
     type: "Class recording",
-    url: "#",
+    url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
   {
     id: "VID-002",
@@ -220,7 +220,7 @@ export const videoRecords: VideoRecord[] = [
     date: "2026-08-15",
     duration: "28 min",
     type: "Project review",
-    url: "#",
+    url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
   {
     id: "VID-003",
@@ -229,7 +229,7 @@ export const videoRecords: VideoRecord[] = [
     date: "2026-08-14",
     duration: "35 min",
     type: "Class recording",
-    url: "#",
+    url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
 ];
 

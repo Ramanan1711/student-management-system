@@ -18,6 +18,7 @@ export default function StudentProfile() {
   const { studentId } = useParams();
   const { students, tasks, classReports, videoRecords } = useDataStore();
   const [activeTab, setActiveTab] = useState<ProfileTab>("Overview");
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const student = students.find((entry) => entry.id === studentId);
 
   if (!student) {
@@ -27,6 +28,7 @@ export default function StudentProfile() {
   const studentTasks = tasks.filter((task) => task.studentId === student.id);
   const studentReports = classReports.filter((report) => report.batch === student.batch);
   const studentVideos = videoRecords.filter((video) => video.studentId === student.id);
+  const selectedVideo = studentVideos.find((video) => video.id === selectedVideoId);
   const courseProgress = student.performance.overallPerformance;
 
   const tabClass = (tab: ProfileTab) =>
@@ -78,7 +80,7 @@ export default function StudentProfile() {
         {studentVideos.map((video) => (
           <div key={video.id} className="flex flex-col gap-3 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="font-medium text-slate-900">{video.title}</p><p className="mt-1 text-sm text-slate-600">{video.type} · {video.duration} · {video.date}</p></div>
-            <a href={video.url} data-testid={`student-video-${video.id}`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open recording</a>
+            <button type="button" data-testid={`student-video-${video.id}`} onClick={() => setSelectedVideoId(video.id)} className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open recording</button>
           </div>
         ))}
       </div>
@@ -123,6 +125,20 @@ export default function StudentProfile() {
       </div>
 
       <div data-testid={`student-profile-tab-${activeTab.toLowerCase().replaceAll(" ", "-")}`}>{tabContent}</div>
+
+      {selectedVideo && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4" onClick={() => setSelectedVideoId(null)}>
+          <div data-testid="student-video-player" className="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div><h2 className="text-lg font-semibold text-slate-900">{selectedVideo.title}</h2><p className="text-sm text-slate-500">{selectedVideo.type} · {selectedVideo.date}</p></div>
+              <button type="button" data-testid="student-video-close" onClick={() => setSelectedVideoId(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Close</button>
+            </div>
+            <video controls autoPlay className="w-full rounded-xl bg-slate-950" src={selectedVideo.url}>
+              Your browser does not support video playback.
+            </video>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
