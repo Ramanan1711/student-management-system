@@ -90,6 +90,14 @@ select {
     width: 100% !important;
     height: 360px !important;
     min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .reports-chart-area .recharts-wrapper,
+  .reports-chart-area .recharts-surface {
+    max-width: 100% !important;
+    overflow: visible !important;
   }
 
   [data-testid="reports-chart-card"],

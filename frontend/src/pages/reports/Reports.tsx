@@ -137,7 +137,7 @@ export default function Reports() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyProgress}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" interval={0} stroke="#64748b" />
+              <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={60} stroke="#64748b" />
               <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
               <Tooltip />
               <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
