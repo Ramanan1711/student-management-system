@@ -57,8 +57,21 @@ https://ramanan1711.github.io/student-management-system/
 
 ## Notes
 
-- Mock JSON data is used to simulate student, batch, report, employee, and walk-in datasets.
-- The login page routes to the dashboard and the app uses a component-based layout for the admin portal.
+- The frontend uses seeded mock data from `frontend/src/data/mockData.ts` and `frontend/src/data/students.json` to simulate student, batch, report, employee, attendance, task, and walk-in datasets.
+- Changes made in the frontend are persisted in browser `localStorage` under `sms.data.*`. They are specific to the current browser and origin; clearing site data or using another browser removes the changes and restores the seed data.
+- The application does not currently use a production database or complete CRUD API. The backend in `backend/server.py` is a minimal health-check stub and is not required to run the frontend.
+
+## Demo Authentication & Data Limitations
+
+- Authentication is for demonstration only. Any valid email address and non-empty password are accepted; there is no server-side credential verification, role-based authorization, password hashing, or HTTP-only session cookie.
+- The username shown in the sidebar is taken from the part of the login email before `@`. For example, `admin@example.com` displays as `Admin` with the avatar initial `A`.
+- Authentication is stored in tab-scoped `sessionStorage`. Closing the browser tab logs the user out. Use the **Logout** button to clear the session immediately.
+- Suggested demo credentials:
+   - Email: `admin@example.com`
+   - Password: `secret`
+- Student photos are stored as browser data URLs in the local mock store. They are suitable for the demo only and are not uploaded to a server or object-storage service.
+- Video records use seeded sample media URLs and are not connected to a real video-management service.
+- Data is reset to the seed dataset when browser storage is cleared. The mock data should not be used for real student, payment, attendance, or authentication records.
 
 ## Assignment Completion
 
