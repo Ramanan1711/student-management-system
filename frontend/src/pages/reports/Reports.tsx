@@ -133,7 +133,7 @@ export default function Reports() {
       <div data-testid="reports-chart-card" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">{view === "progress" ? "Progress overview" : view === "attendance" ? "Attendance overview" : "Fee overview"}</h2>
 
-        <div className="reports-chart-area h-72">
+        <div className="reports-chart-area reports-chart-responsive h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyProgress}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -143,6 +143,15 @@ export default function Reports() {
               <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="reports-chart-print" aria-hidden="true">
+          <BarChart width={660} height={360} data={monthlyProgress} margin={{ top: 8, right: 12, bottom: 52, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="name" interval={0} angle={-35} textAnchor="end" height={60} stroke="#64748b" />
+            <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
+            <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
+          </BarChart>
         </div>
       </div>
 

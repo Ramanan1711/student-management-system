@@ -37,6 +37,10 @@ select {
   font: inherit;
 }
 
+.reports-chart-print {
+  display: none;
+}
+
 @page {
   margin: 12mm;
 }
@@ -90,6 +94,18 @@ select {
     width: 100% !important;
     height: 360px !important;
     min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .reports-chart-responsive {
+    display: none !important;
+  }
+
+  .reports-chart-print {
+    display: block !important;
+    width: 660px !important;
+    height: 360px !important;
     max-width: 100% !important;
     overflow: visible !important;
   }
