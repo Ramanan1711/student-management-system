@@ -130,6 +130,16 @@ export interface TaskRecord {
   studentId: string;
 }
 
+export interface VideoRecord {
+  id: string;
+  studentId: string;
+  title: string;
+  date: string;
+  duration: string;
+  type: "Class recording" | "Project review" | "Feedback";
+  url: string;
+}
+
 export const revenueOverview = [
   { month: "JAN", value: 48 },
   { month: "FEB", value: 62 },
@@ -191,6 +201,36 @@ export const monthlyProgress = [
   { name: "Oct", value: 86 },
   { name: "Nov", value: 91 },
   { name: "Dec", value: 94 },
+];
+
+export const videoRecords: VideoRecord[] = [
+  {
+    id: "VID-001",
+    studentId: "STU-2026-00125",
+    title: "React component patterns",
+    date: "2026-08-12",
+    duration: "42 min",
+    type: "Class recording",
+    url: "#",
+  },
+  {
+    id: "VID-002",
+    studentId: "STU-2026-00125",
+    title: "Project review and feedback",
+    date: "2026-08-15",
+    duration: "28 min",
+    type: "Project review",
+    url: "#",
+  },
+  {
+    id: "VID-003",
+    studentId: "STU-2026-00126",
+    title: "API integration walkthrough",
+    date: "2026-08-14",
+    duration: "35 min",
+    type: "Class recording",
+    url: "#",
+  },
 ];
 
 export const walkinLeads: WalkinLead[] = [

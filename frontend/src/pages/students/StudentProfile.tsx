@@ -1,10 +1,24 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDataStore } from "../../store/dataStoreContext";
 
+const profileTabs = [
+  "Overview",
+  "Registration",
+  "Attendance",
+  "Fee Ledger",
+  "Performance",
+  "Video Records",
+  "Reports",
+  "Tasks",
+] as const;
+type ProfileTab = (typeof profileTabs)[number];
+
 export default function StudentProfile() {
   const { studentId } = useParams();
-  const { students, tasks, classReports } = useDataStore();
-  const student = students.find((entry) => entry.id === studentId) ?? students[0];
+  const { students, tasks, classReports, videoRecords } = useDataStore();
+  const [activeTab, setActiveTab] = useState<ProfileTab>("Overview");
+  const student = students.find((entry) => entry.id === studentId);
 
   if (!student) {
     return <div className="text-slate-500">Student not found.</div>;
@@ -12,6 +26,68 @@ export default function StudentProfile() {
 
   const studentTasks = tasks.filter((task) => task.studentId === student.id);
   const studentReports = classReports.filter((report) => report.batch === student.batch);
+  const studentVideos = videoRecords.filter((video) => video.studentId === student.id);
+  const courseProgress = student.performance.overallPerformance;
+
+  const tabClass = (tab: ProfileTab) =>
+    `whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium ${activeTab === tab ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"}`;
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white">{student.name.slice(0, 1)}</div>
+            <div><h2 className="text-xl font-bold text-slate-900">{student.name}</h2><p className="text-sm text-slate-500">{student.id}</p></div>
+          </div>
+          <dl className="mt-5 space-y-3 text-sm">
+            <div className="flex justify-between gap-3"><dt className="text-slate-500">Mobile</dt><dd className="font-medium text-slate-900">{student.mobile}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-slate-500">Email</dt><dd className="font-medium text-slate-900">{student.email}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-slate-500">Counsellor</dt><dd className="font-medium text-slate-900">{student.assignedCounsellor}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-slate-500">Mode</dt><dd className="font-medium text-slate-900">{student.mode}</dd></div>
+          </dl>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900">Journey snapshot</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {[
+              ["Classes completed", String(student.attendance.totalClasses)],
+              ["Classes pending", "18"],
+              ["Fee paid", `₹${student.fee.amountPaid.toLocaleString("en-IN")}`],
+              ["Fee pending", `₹${student.fee.pendingAmount.toLocaleString("en-IN")}`],
+            ].map(([label, value]) => <div key={label} className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">{label}</p><p className="mt-1 font-semibold text-slate-900">{value}</p></div>)}
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <HistoryPreview title="Latest class reports" empty="No class reports recorded yet." items={studentReports.slice(0, 3).map((report) => ({ title: report.topic, detail: report.description, date: report.date }))} />
+        <HistoryPreview title="Latest tasks" empty="No tasks assigned yet." items={studentTasks.slice(0, 3).map((task) => ({ title: task.title, detail: task.status, date: `Due ${task.dueDate}` }))} />
+      </div>
+    </div>
+  );
+
+  const renderRegistration = () => <InfoSection title="Registration & course details" items={[["Student ID", student.id], ["Qualification", student.qualification], ["Date of birth", student.dateOfBirth], ["Joining date", student.joiningDate], ["Course", student.course], ["Duration", student.courseDuration], ["Batch", student.batch], ["Address", student.address]]} />;
+  const renderAttendance = () => <InfoSection title="Attendance history" items={[["Total classes", String(student.attendance.totalClasses)], ["Present", String(student.attendance.present)], ["Absent", String(student.attendance.absent)], ["Leave", String(student.attendance.leave)], ["Attendance", `${student.attendance.attendancePercentage}%`]]} />;
+  const renderFees = () => <InfoSection title="Fee ledger" items={[["Course fee", `₹${student.fee.courseFee.toLocaleString("en-IN")}`], ["Discount", `₹${student.fee.discount.toLocaleString("en-IN")}`], ["Final fee", `₹${student.fee.finalFee.toLocaleString("en-IN")}`], ["Amount paid", `₹${student.fee.amountPaid.toLocaleString("en-IN")}`], ["Pending amount", `₹${student.fee.pendingAmount.toLocaleString("en-IN")}`], ["Payment date", student.fee.paymentDate], ["Payment mode", student.fee.paymentMode], ["Next payment", student.fee.nextPaymentDate]]} />;
+  const renderPerformance = () => <InfoSection title="Performance metrics" items={Object.entries(student.performance).map(([label, value]) => [label.replace(/([A-Z])/g, " $1"), `${value}%`])} />;
+  const renderVideos = () => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="text-lg font-semibold text-slate-900">Video and class records</h3>
+      <div className="mt-4 space-y-3">
+        {studentVideos.length === 0 && <p className="text-sm text-slate-500">No video records available yet.</p>}
+        {studentVideos.map((video) => (
+          <div key={video.id} className="flex flex-col gap-3 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="font-medium text-slate-900">{video.title}</p><p className="mt-1 text-sm text-slate-600">{video.type} · {video.duration} · {video.date}</p></div>
+            <a href={video.url} data-testid={`student-video-${video.id}`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">Open recording</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  const renderReports = () => <HistoryPreview title="Class report history" empty="No class reports recorded yet." items={studentReports.map((report) => ({ title: report.topic, detail: `${report.module} · ${report.studentPerformance}`, date: report.date }))} />;
+  const renderTasks = () => <HistoryPreview title="Assigned tasks" empty="No tasks assigned yet." items={studentTasks.map((task) => ({ title: task.title, detail: `${task.priority} · ${task.status}`, date: `Due ${task.dueDate}` }))} />;
+
+  const tabContent = { Overview: renderOverview, Registration: renderRegistration, Attendance: renderAttendance, "Fee Ledger": renderFees, Performance: renderPerformance, "Video Records": renderVideos, Reports: renderReports, Tasks: renderTasks }[activeTab]();
 
   return (
     <div data-testid="student-profile-page" className="space-y-6">
@@ -30,7 +106,7 @@ export default function StudentProfile() {
         {[
           { label: "Course", value: student.course },
           { label: "Batch", value: student.batch },
-          { label: "Course Progress", value: "68%" },
+          { label: "Course Progress", value: `${courseProgress}%` },
           { label: "Attendance", value: `${student.attendance.attendancePercentage}%` },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -40,87 +116,21 @@ export default function StudentProfile() {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white">
-              {student.name.slice(0, 1)}
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">{student.name}</h2>
-              <p className="text-sm text-slate-500">{student.id}</p>
-            </div>
-          </div>
-
-          <dl className="mt-5 space-y-3 text-sm">
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Mobile</dt><dd className="font-medium text-slate-900">{student.mobile}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Email</dt><dd className="font-medium text-slate-900">{student.email}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Course</dt><dd className="font-medium text-slate-900">{student.course}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Counsellor</dt><dd className="font-medium text-slate-900">{student.assignedCounsellor}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Mode</dt><dd className="font-medium text-slate-900">{student.mode}</dd></div>
-          </dl>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">Registration & course details</h3>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Qualification</p><p className="mt-1 font-semibold text-slate-900">{student.qualification}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Joining date</p><p className="mt-1 font-semibold text-slate-900">{student.joiningDate}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Duration</p><p className="mt-1 font-semibold text-slate-900">{student.courseDuration}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Address</p><p className="mt-1 font-semibold text-slate-900">{student.address}</p></div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">Fee details</h3>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Course fee</p><p className="mt-1 font-semibold text-slate-900">₹{student.fee.courseFee.toLocaleString("en-IN")}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Discount</p><p className="mt-1 font-semibold text-slate-900">₹{student.fee.discount.toLocaleString("en-IN")}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Paid</p><p className="mt-1 font-semibold text-slate-900">₹{student.fee.amountPaid.toLocaleString("en-IN")}</p></div>
-              <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Pending</p><p className="mt-1 font-semibold text-slate-900">₹{student.fee.pendingAmount.toLocaleString("en-IN")}</p></div>
-            </div>
-          </div>
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex min-w-max px-2" role="tablist" aria-label="Student profile history">
+          {profileTabs.map((tab) => <button key={tab} type="button" role="tab" aria-selected={activeTab === tab} onClick={() => setActiveTab(tab)} className={tabClass(tab)}>{tab}</button>)}
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Tasks</h3>
-          <div className="mt-4 space-y-3">
-            {studentTasks.length === 0 && (
-              <p className="text-sm text-slate-500">No tasks assigned yet.</p>
-            )}
-            {studentTasks.map((task) => (
-              <div key={task.id} className="rounded-xl bg-slate-50 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-slate-900">{task.title}</p>
-                    <p className="text-xs text-slate-500">Due: {task.dueDate}</p>
-                  </div>
-                  <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">{task.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Class reports</h3>
-          <div className="mt-4 space-y-3">
-            {studentReports.slice(0, 3).map((report) => (
-              <div key={report.id} className="rounded-xl bg-slate-50 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-slate-900">{report.topic}</p>
-                  <span className="text-xs text-slate-500">{report.date}</span>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{report.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div data-testid={`student-profile-tab-${activeTab.toLowerCase().replaceAll(" ", "-")}`}>{tabContent}</div>
     </div>
   );
+}
+
+function InfoSection({ title, items }: { title: string; items: string[][] }) {
+  return <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3 className="text-lg font-semibold text-slate-900">{title}</h3><div className="mt-4 grid gap-4 sm:grid-cols-2">{items.map(([label, value]) => <div key={label} className="rounded-xl bg-slate-50 p-3"><p className="text-xs capitalize text-slate-500">{label}</p><p className="mt-1 font-semibold text-slate-900">{value}</p></div>)}</div></div>;
+}
+
+function HistoryPreview({ title, empty, items }: { title: string; empty: string; items: { title: string; detail: string; date: string }[] }) {
+  return <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h3 className="text-lg font-semibold text-slate-900">{title}</h3><div className="mt-4 space-y-3">{items.length === 0 && <p className="text-sm text-slate-500">{empty}</p>}{items.map((item) => <div key={`${item.title}-${item.date}`} className="rounded-xl bg-slate-50 p-3"><div className="flex items-center justify-between gap-3"><p className="font-medium text-slate-900">{item.title}</p><span className="text-xs text-slate-500">{item.date}</span></div><p className="mt-1 text-sm text-slate-600">{item.detail}</p></div>)}</div></div>;
 }

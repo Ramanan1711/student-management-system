@@ -18,6 +18,7 @@ import {
   employees as seedEmployees,
   classReports as seedClassReports,
   tasks as seedTasks,
+  videoRecords as seedVideoRecords,
   type WalkinLead,
   type StudentRecord,
   type BatchRecord,
@@ -52,6 +53,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [classReports, setClassReports] =
     useState<ClassReportRecord[]>(seedClassReports);
   const [tasks, setTasks] = useState<TaskRecord[]>(seedTasks);
+  const [videoRecords] = useState(seedVideoRecords);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(seedNotifications);
 
@@ -264,10 +266,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       employees,
       classReports,
       tasks,
+      videoRecords,
       notifications,
       ...actions,
     }),
-    [walkins, students, batches, employees, classReports, tasks, notifications, actions],
+    [walkins, students, batches, employees, classReports, tasks, videoRecords, notifications, actions],
   );
 
   return (

@@ -6,6 +6,7 @@ import type {
   EmployeeRecord,
   StudentRecord,
   TaskRecord,
+  VideoRecord,
   WalkinLead,
 } from "../data/mockData";
 
@@ -23,6 +24,7 @@ export interface DataStoreValue {
   employees: EmployeeRecord[];
   classReports: ClassReportRecord[];
   tasks: TaskRecord[];
+  videoRecords: VideoRecord[];
 
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
   addStudent: (student: Omit<StudentRecord, "id" | "photo">) => StudentRecord;
