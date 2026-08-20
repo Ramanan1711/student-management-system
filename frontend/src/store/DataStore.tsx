@@ -209,17 +209,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteStudent = useCallback<DataStoreValue["deleteStudent"]>((id) => {
     if (!students.some((student) => student.id === id)) return false;
-    setStudents((prev) => prev.filter((student) => student.id !== id));
-    setBatches((prev) => prev.map((batch) => ({ ...batch, students: batch.students.filter((studentId) => studentId !== id) })));
+    const remainingStudents = students.filter((student) => student.id !== id);
+    const remainingAllocations = employeeAllocations.filter((allocation) => allocation.studentId !== id);
+    const remainingBatches = syncBatchMembers(remainingStudents, batches);
+
+    setStudents(remainingStudents);
+    setBatches(remainingBatches);
     setAttendanceRecords((prev) => prev.filter((record) => record.studentId !== id));
     setTasks((prev) => prev.filter((task) => task.studentId !== id));
     setVideoRecords((prev) => prev.filter((record) => record.studentId !== id));
     setFeeTransactions((prev) => prev.filter((transaction) => transaction.studentId !== id));
-    setEmployeeAllocations((prev) => prev.filter((allocation) => allocation.studentId !== id));
+    setEmployeeAllocations(remainingAllocations);
+    setEmployees((prev) => syncEmployeeCounts(prev, remainingAllocations, remainingBatches));
     setClassReports((prev) => prev.map((report) => ({ ...report, studentIds: report.studentIds?.filter((studentId) => studentId !== id) ?? [] })));
     pushNotification("Student deleted", id);
     return true;
-  }, [students, pushNotification]);
+  }, [students, batches, employeeAllocations, pushNotification]);
 
   const updateStudentFee = useCallback<DataStoreValue["updateStudentFee"]>(
     (id, patch) => {
