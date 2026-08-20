@@ -35,6 +35,7 @@ export interface DataStoreValue {
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
   addStudent: (student: Omit<StudentRecord, "id">) => StudentRecord;
   updateStudent: (id: string, patch: Partial<StudentRecord>) => void;
+  deleteStudent: (id: string) => boolean;
   updateStudentFee: (id: string, patch: Partial<StudentRecord["fee"]>) => void;
   addBatch: (batch: Omit<BatchRecord, "id">) => BatchRecord;
   addEmployee: (employee: Omit<EmployeeRecord, "id">) => EmployeeRecord;

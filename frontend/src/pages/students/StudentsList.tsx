@@ -1,16 +1,31 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { Pagination, SortButton } from "../../components/tables/TableControls";
 import { useTableControls } from "../../hooks/useTableControls";
 import { getBatchName } from "../../data/mockData";
 
 export default function StudentsList() {
-  const { students, batches } = useDataStore();
+  const { students, batches, updateStudent, deleteStudent } = useDataStore();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [modeFilter, setModeFilter] = useState<"All" | "Online" | "Offline" | "Hybrid">("All");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", mobile: "", email: "", course: "", mode: "Offline" as "Online" | "Offline" | "Hybrid" });
+  const editingStudent = students.find((student) => student.id === editingId);
+
+  const openEdit = (student: (typeof students)[number]) => {
+    setEditingId(student.id);
+    setEditForm({ name: student.name, mobile: student.mobile, email: student.email, course: student.course, mode: student.mode });
+  };
+
+  const saveEdit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingId || !editForm.name || !/^\d{10}$/.test(editForm.mobile) || !/\S+@\S+\.\S+/.test(editForm.email)) return;
+    updateStudent(editingId, editForm);
+    setEditingId(null);
+  };
 
   const filteredStudents = useMemo(() => {
     const search = query.toLowerCase();
@@ -117,6 +132,8 @@ export default function StudentsList() {
                     >
                       View profile
                     </button>
+                    <button type="button" data-testid={`student-edit-${student.id}`} onClick={(event) => { event.stopPropagation(); openEdit(student); }} className="ml-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Edit</button>
+                    <button type="button" data-testid={`student-delete-${student.id}`} onClick={(event) => { event.stopPropagation(); if (window.confirm(`Delete ${student.name}?`)) deleteStudent(student.id); }} className="ml-2 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50">Delete</button>
                   </td>
                 </tr>
               ))}
@@ -125,6 +142,16 @@ export default function StudentsList() {
         </div>
         <Pagination page={table.currentPage} pageCount={table.pageCount} total={filteredStudents.length} pageSize={8} onPageChange={table.setPage} />
       </div>
+
+      {editingStudent && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setEditingId(null)}>
+          <form onSubmit={saveEdit} data-testid="student-edit-form" onClick={(event) => event.stopPropagation()} className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-slate-900">Edit student</h2><button type="button" data-testid="student-edit-close" onClick={() => setEditingId(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" /></button></div>
+            <div className="grid gap-4"><input data-testid="student-edit-name" value={editForm.name} onChange={(event) => setEditForm({ ...editForm, name: event.target.value })} placeholder="Name" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><input data-testid="student-edit-mobile" value={editForm.mobile} onChange={(event) => setEditForm({ ...editForm, mobile: event.target.value })} placeholder="Mobile" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><input data-testid="student-edit-email" value={editForm.email} onChange={(event) => setEditForm({ ...editForm, email: event.target.value })} placeholder="Email" type="email" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><input data-testid="student-edit-course" value={editForm.course} onChange={(event) => setEditForm({ ...editForm, course: event.target.value })} placeholder="Course" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" /><select value={editForm.mode} onChange={(event) => setEditForm({ ...editForm, mode: event.target.value as typeof editForm.mode })} className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm"><option>Online</option><option>Offline</option><option>Hybrid</option></select></div>
+            <div className="mt-5 flex justify-end gap-3"><button type="button" onClick={() => setEditingId(null)} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Cancel</button><button type="submit" data-testid="student-edit-save" className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Save changes</button></div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

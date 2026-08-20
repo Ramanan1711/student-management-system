@@ -113,7 +113,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   });
   const [classReports, setClassReports] = useState<ClassReportRecord[]>(() => loadStored("classReports", seedClassReports));
   const [tasks, setTasks] = useState<TaskRecord[]>(() => loadStored("tasks", seedTasks));
-  const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
+  const [videoRecords, setVideoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
   const [attendanceRecords, setAttendanceRecords] = useState(() => loadStored("attendanceRecords", seedAttendanceRecords));
   const [employeeAllocations, setEmployeeAllocations] = useState(() => loadStored("employeeAllocations", seedEmployeeAllocations));
   const [feeTransactions, setFeeTransactions] = useState(() => loadStored("feeTransactions", seedFeeTransactions));
@@ -205,6 +205,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     },
     [employeeAllocations],
   );
+
+  const deleteStudent = useCallback<DataStoreValue["deleteStudent"]>((id) => {
+    if (!students.some((student) => student.id === id)) return false;
+    setStudents((prev) => prev.filter((student) => student.id !== id));
+    setBatches((prev) => prev.map((batch) => ({ ...batch, students: batch.students.filter((studentId) => studentId !== id) })));
+    setAttendanceRecords((prev) => prev.filter((record) => record.studentId !== id));
+    setTasks((prev) => prev.filter((task) => task.studentId !== id));
+    setVideoRecords((prev) => prev.filter((record) => record.studentId !== id));
+    setFeeTransactions((prev) => prev.filter((transaction) => transaction.studentId !== id));
+    setEmployeeAllocations((prev) => prev.filter((allocation) => allocation.studentId !== id));
+    setClassReports((prev) => prev.map((report) => ({ ...report, studentIds: report.studentIds?.filter((studentId) => studentId !== id) ?? [] })));
+    pushNotification("Student deleted", id);
+    return true;
+  }, [students, pushNotification]);
 
   const updateStudentFee = useCallback<DataStoreValue["updateStudentFee"]>(
     (id, patch) => {
@@ -369,6 +383,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addWalkin,
       addStudent,
       updateStudent,
+      deleteStudent,
       updateStudentFee,
       addBatch,
       addEmployee,
@@ -384,6 +399,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addWalkin,
       addStudent,
       updateStudent,
+      deleteStudent,
       updateStudentFee,
       addBatch,
       addEmployee,
