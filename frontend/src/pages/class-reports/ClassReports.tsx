@@ -10,6 +10,7 @@ import { useTableControls } from "../../hooks/useTableControls";
 const initialReport: Omit<ClassReportRecord, "id"> = {
   date: new Date().toISOString().slice(0, 10),
   batchId: "",
+  studentIds: [],
   trainer: "",
   topic: "",
   module: "",
@@ -23,7 +24,7 @@ const initialReport: Omit<ClassReportRecord, "id"> = {
 };
 
 export default function ClassReports() {
-  const { classReports, batches, employees, addClassReport } = useDataStore();
+  const { classReports, batches, students, employees, addClassReport } = useDataStore();
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [batchFilter, setBatchFilter] = useState<string>("All");
@@ -38,6 +39,10 @@ export default function ClassReports() {
   );
 
   const batchOptions = useMemo(() => ["All", ...batches.map((batch) => batch.id)], [batches]);
+  const selectedBatchStudents = useMemo(
+    () => students.filter((student) => student.batchId === form.batchId),
+    [students, form.batchId],
+  );
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -57,8 +62,8 @@ export default function ClassReports() {
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.date || !form.batchId || !form.trainer || !form.topic || !form.module || !form.description) {
-      setError("Date, batch, trainer, topic, module, and description are required.");
+    if (!form.date || !form.batchId || !form.trainer || !form.topic || !form.module || !form.description || form.studentIds.length === 0) {
+      setError("Date, batch, student, trainer, topic, module, and description are required.");
       return;
     }
     if (form.studentAttendance < 0 || form.studentAttendance > 100) {
@@ -204,11 +209,15 @@ export default function ClassReports() {
                 <input data-testid="class-report-date-input" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal" />
               </label>
               <label className="grid gap-1 text-sm font-medium text-slate-700">Batch
-                <select data-testid="class-report-batch-select" value={form.batchId} onChange={(event) => setForm({ ...form, batchId: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal">
+                <select data-testid="class-report-batch-select" value={form.batchId} onChange={(event) => setForm({ ...form, batchId: event.target.value, studentIds: [] })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal">
                   <option value="">Select batch</option>
                   {batches.map((batch) => <option key={batch.id} value={batch.id}>{batch.batchName} ({batch.id})</option>)}
                 </select>
               </label>
+              <fieldset className="grid gap-2 sm:col-span-2">
+                <legend className="text-sm font-medium text-slate-700">Students in this class</legend>
+                {selectedBatchStudents.length === 0 ? <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500">Select a batch to choose students.</p> : <div className="grid gap-2 rounded-lg border border-slate-200 p-3 sm:grid-cols-2">{selectedBatchStudents.map((student) => <label key={student.id} className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={form.studentIds.includes(student.id)} onChange={(event) => setForm({ ...form, studentIds: event.target.checked ? [...form.studentIds, student.id] : form.studentIds.filter((id) => id !== student.id) })} />{student.name}</label>)}</div>}
+              </fieldset>
               <label className="grid gap-1 text-sm font-medium text-slate-700">Trainer
                 <select data-testid="class-report-trainer-select" value={form.trainer} onChange={(event) => setForm({ ...form, trainer: event.target.value })} className="rounded-lg border border-slate-200 px-3 py-2.5 font-normal">
                   <option value="">Select trainer</option>

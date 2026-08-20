@@ -118,6 +118,7 @@ export interface ClassReportRecord {
   id: string;
   date: string;
   batchId: string;
+  studentIds: string[];
   trainer: string;
   topic: string;
   module: string;
@@ -546,6 +547,7 @@ export const classReports: ClassReportRecord[] = [
     id: "CR-001",
     date: "2026-08-01",
     batchId: "FS-APR-01",
+    studentIds: ["STU-2026-00125", "STU-2026-00126"],
     trainer: "Sathish Kumar",
     topic: "React Fundamentals",
     module: "Frontend Basics",
@@ -561,6 +563,7 @@ export const classReports: ClassReportRecord[] = [
     id: "CR-002",
     date: "2026-08-03",
     batchId: "JAVA-MAY-01",
+    studentIds: ["STU-2026-00127"],
     trainer: "Deepak Nair",
     topic: "OOP Concepts",
     module: "Core Java",
@@ -576,6 +579,7 @@ export const classReports: ClassReportRecord[] = [
     id: "CR-003",
     date: "2026-08-05",
     batchId: "FS-APR-01",
+    studentIds: ["STU-2026-00125", "STU-2026-00126"],
     trainer: "Sathish Kumar",
     topic: "CSS Grid & Responsive Design",
     module: "Frontend Design",

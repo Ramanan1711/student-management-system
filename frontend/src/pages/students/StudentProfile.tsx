@@ -27,7 +27,11 @@ export default function StudentProfile() {
   }
 
   const studentTasks = tasks.filter((task) => task.studentId === student.id);
-  const studentReports = classReports.filter((report) => report.batchId === student.batchId);
+  const studentReports = classReports.filter((report) =>
+    report.studentIds?.length
+      ? report.studentIds.includes(student.id)
+      : report.batchId === student.batchId,
+  );
   const studentVideos = videoRecords.filter((video) => video.studentId === student.id);
   const studentAttendance = attendanceRecords
     .filter((record) => record.studentId === student.id)
