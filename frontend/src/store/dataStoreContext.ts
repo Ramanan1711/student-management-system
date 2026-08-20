@@ -7,6 +7,7 @@ import type {
   StudentRecord,
   TaskRecord,
   VideoRecord,
+  AttendanceRecord,
   WalkinLead,
 } from "../data/mockData";
 
@@ -25,6 +26,7 @@ export interface DataStoreValue {
   classReports: ClassReportRecord[];
   tasks: TaskRecord[];
   videoRecords: VideoRecord[];
+  attendanceRecords: AttendanceRecord[];
 
   addWalkin: (walkin: Omit<WalkinLead, "id">) => WalkinLead;
   addStudent: (student: Omit<StudentRecord, "id" | "photo">) => StudentRecord;
@@ -37,8 +39,9 @@ export interface DataStoreValue {
   addClassReport: (report: Omit<ClassReportRecord, "id">) => ClassReportRecord;
   markAttendance: (
     studentId: string,
+    date: string,
     status: "Present" | "Absent" | "Leave",
-  ) => void;
+  ) => boolean;
 
   notifications: NotificationItem[];
   dismissNotification: (id: string) => void;

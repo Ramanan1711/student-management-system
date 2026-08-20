@@ -12,7 +12,7 @@ const markStyle: Record<AttendanceMark, string> = {
 };
 
 export default function Attendance() {
-  const { students, batches: batchRecords, markAttendance } = useDataStore();
+  const { students, batches: batchRecords, attendanceRecords, markAttendance } = useDataStore();
   const { showToast } = useToast();
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -51,8 +51,13 @@ export default function Attendance() {
       showToast("Mark at least one student before saving.", "error");
       return;
     }
-    entries.forEach(([studentId, mark]) => markAttendance(studentId, mark));
-    showToast(`Attendance saved for ${entries.length} student${entries.length > 1 ? "s" : ""} on ${date}`);
+    const savedCount = entries.reduce((count, [studentId, mark]) => count + (markAttendance(studentId, date, mark) ? 1 : 0), 0);
+    const skippedCount = entries.length - savedCount;
+    if (savedCount === 0) {
+      showToast(`Attendance already exists for the selected date (${date}).`, "error");
+      return;
+    }
+    showToast(`Attendance saved for ${savedCount} student${savedCount > 1 ? "s" : ""} on ${date}${skippedCount ? `; ${skippedCount} duplicate${skippedCount > 1 ? "s" : ""} skipped` : ""}`);
     setSession({});
   };
 
@@ -129,6 +134,7 @@ export default function Attendance() {
               )}
               {visibleStudents.map((student) => {
                 const active = session[student.id];
+                const alreadyMarked = attendanceRecords.some((record) => record.studentId === student.id && record.date === date);
                 return (
                   <tr key={student.id} data-testid={`attendance-row-${student.id}`} className="border-t border-slate-200">
                     <td className="px-4 py-3 font-medium text-slate-900">{student.name}</td>
@@ -141,9 +147,10 @@ export default function Attendance() {
                             type="button"
                             data-testid={`attendance-mark-${student.id}-${mark.toLowerCase()}`}
                             onClick={() => setMark(student.id, mark)}
+                            disabled={alreadyMarked}
                             className={`rounded-full px-3 py-1 text-xs font-semibold transition ${active === mark ? markStyle[mark] : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                           >
-                            {mark}
+                            {alreadyMarked ? "Recorded" : mark}
                           </button>
                         ))}
                       </div>

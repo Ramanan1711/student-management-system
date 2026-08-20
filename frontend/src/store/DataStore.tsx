@@ -19,6 +19,7 @@ import {
   classReports as seedClassReports,
   tasks as seedTasks,
   videoRecords as seedVideoRecords,
+  attendanceRecords as seedAttendanceRecords,
   type WalkinLead,
   type StudentRecord,
   type BatchRecord,
@@ -54,6 +55,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     useState<ClassReportRecord[]>(seedClassReports);
   const [tasks, setTasks] = useState<TaskRecord[]>(seedTasks);
   const [videoRecords] = useState(seedVideoRecords);
+  const [attendanceRecords, setAttendanceRecords] = useState(seedAttendanceRecords);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(seedNotifications);
 
@@ -204,7 +206,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const markAttendance = useCallback<DataStoreValue["markAttendance"]>(
-    (studentId, status) => {
+    (studentId, date, status) => {
+      if (attendanceRecords.some((record) => record.studentId === studentId && record.date === date)) {
+        return false;
+      }
+      setAttendanceRecords((prev) => [
+        ...prev,
+        { id: `ATT-${Date.now()}-${studentId}`, studentId, date, status },
+      ]);
       setStudents((prev) =>
         prev.map((s) => {
           if (s.id !== studentId) return s;
@@ -219,8 +228,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           return { ...s, attendance: att };
         }),
       );
+      return true;
     },
-    [],
+    [attendanceRecords],
   );
 
   const dismissNotification = useCallback((id: string) => {
@@ -267,10 +277,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       classReports,
       tasks,
       videoRecords,
+      attendanceRecords,
       notifications,
       ...actions,
     }),
-    [walkins, students, batches, employees, classReports, tasks, videoRecords, notifications, actions],
+    [walkins, students, batches, employees, classReports, tasks, videoRecords, attendanceRecords, notifications, actions],
   );
 
   return (

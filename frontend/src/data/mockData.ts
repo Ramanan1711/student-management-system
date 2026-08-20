@@ -144,6 +144,13 @@ export interface VideoRecord {
   url: string;
 }
 
+export interface AttendanceRecord {
+  id: string;
+  studentId: string;
+  date: string;
+  status: "Present" | "Absent" | "Leave";
+}
+
 export const revenueOverview = [
   { month: "JAN", value: 48 },
   { month: "FEB", value: 62 },
@@ -235,6 +242,13 @@ export const videoRecords: VideoRecord[] = [
     type: "Class recording",
     url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
   },
+];
+
+export const attendanceRecords: AttendanceRecord[] = [
+  { id: "ATT-001", studentId: "STU-2026-00125", date: "2026-08-18", status: "Present" },
+  { id: "ATT-002", studentId: "STU-2026-00125", date: "2026-08-19", status: "Present" },
+  { id: "ATT-003", studentId: "STU-2026-00126", date: "2026-08-18", status: "Absent" },
+  { id: "ATT-004", studentId: "STU-2026-00127", date: "2026-08-18", status: "Leave" },
 ];
 
 export const walkinLeads: WalkinLead[] = [
