@@ -3,6 +3,8 @@ import { Plus, Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
 import type { ClassReportRecord } from "../../data/mockData";
+import { Pagination, SortButton } from "../../components/tables/TableControls";
+import { useTableControls } from "../../hooks/useTableControls";
 
 const initialReport: Omit<ClassReportRecord, "id"> = {
   date: new Date().toISOString().slice(0, 10),
@@ -50,6 +52,8 @@ export default function ClassReports() {
       return matchesText && matchesBatch;
     });
   }, [classReports, search, batchFilter]);
+
+  const table = useTableControls(filtered, 8, (report, key) => report[key as "date" | "batch" | "trainer" | "topic" | "taskStatus" | "studentAttendance"]);
 
   const selected = classReports.find((r) => r.id === selectedId);
 
@@ -113,12 +117,12 @@ export default function ClassReports() {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-4 py-3 font-medium">Date</th>
-                <th className="px-4 py-3 font-medium">Batch</th>
-                <th className="px-4 py-3 font-medium">Trainer</th>
-                <th className="px-4 py-3 font-medium">Topic</th>
-                <th className="px-4 py-3 font-medium">Task Status</th>
-                <th className="px-4 py-3 font-medium">Attendance</th>
+                <th className="px-4 py-3"><SortButton label="Date" active={table.sortKey === "date"} direction={table.sortKey === "date" ? table.sortDirection : null} onClick={() => table.sortBy("date")} /></th>
+                <th className="px-4 py-3"><SortButton label="Batch" active={table.sortKey === "batch"} direction={table.sortKey === "batch" ? table.sortDirection : null} onClick={() => table.sortBy("batch")} /></th>
+                <th className="px-4 py-3"><SortButton label="Trainer" active={table.sortKey === "trainer"} direction={table.sortKey === "trainer" ? table.sortDirection : null} onClick={() => table.sortBy("trainer")} /></th>
+                <th className="px-4 py-3"><SortButton label="Topic" active={table.sortKey === "topic"} direction={table.sortKey === "topic" ? table.sortDirection : null} onClick={() => table.sortBy("topic")} /></th>
+                <th className="px-4 py-3"><SortButton label="Task Status" active={table.sortKey === "taskStatus"} direction={table.sortKey === "taskStatus" ? table.sortDirection : null} onClick={() => table.sortBy("taskStatus")} /></th>
+                <th className="px-4 py-3"><SortButton label="Attendance" active={table.sortKey === "studentAttendance"} direction={table.sortKey === "studentAttendance" ? table.sortDirection : null} onClick={() => table.sortBy("studentAttendance")} /></th>
                 <th className="px-4 py-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -128,7 +132,7 @@ export default function ClassReports() {
                   <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No reports match your filters.</td>
                 </tr>
               )}
-              {filtered.map((report) => (
+              {table.paginatedRows.map((report) => (
                 <tr key={report.id} className="border-t border-slate-200 hover:bg-slate-50">
                   <td className="px-4 py-3 text-slate-600">{report.date}</td>
                   <td className="px-4 py-3 text-slate-600">{report.batch}</td>
@@ -153,6 +157,7 @@ export default function ClassReports() {
             </tbody>
           </table>
         </div>
+        <Pagination page={table.currentPage} pageCount={table.pageCount} total={filtered.length} pageSize={8} onPageChange={table.setPage} />
       </div>
 
       {selected && (

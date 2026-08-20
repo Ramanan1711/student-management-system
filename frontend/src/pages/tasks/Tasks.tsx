@@ -3,6 +3,8 @@ import { Plus, Search, X } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
 import type { TaskRecord } from "../../data/mockData";
+import { Pagination, SortButton } from "../../components/tables/TableControls";
+import { useTableControls } from "../../hooks/useTableControls";
 
 const priorities: TaskRecord["priority"][] = ["Low", "Medium", "High", "Urgent"];
 const statuses: TaskRecord["status"][] = ["Pending", "In Progress", "Completed"];
@@ -49,6 +51,11 @@ export default function Tasks() {
       return matchesText && matchesPriority && matchesStatus;
     });
   }, [tasks, search, priorityFilter, statusFilter]);
+
+  const table = useTableControls(filtered, 8, (task, key) => {
+    if (key === "student") return students.find((entry) => entry.id === task.studentId)?.name ?? task.studentId;
+    return task[key as "title" | "dueDate" | "priority" | "status"];
+  });
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -112,11 +119,11 @@ export default function Tasks() {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-4 py-3 font-medium">Task</th>
-                <th className="px-4 py-3 font-medium">Student</th>
-                <th className="px-4 py-3 font-medium">Due</th>
-                <th className="px-4 py-3 font-medium">Priority</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3"><SortButton label="Task" active={table.sortKey === "title"} direction={table.sortKey === "title" ? table.sortDirection : null} onClick={() => table.sortBy("title")} /></th>
+                <th className="px-4 py-3"><SortButton label="Student" active={table.sortKey === "student"} direction={table.sortKey === "student" ? table.sortDirection : null} onClick={() => table.sortBy("student")} /></th>
+                <th className="px-4 py-3"><SortButton label="Due" active={table.sortKey === "dueDate"} direction={table.sortKey === "dueDate" ? table.sortDirection : null} onClick={() => table.sortBy("dueDate")} /></th>
+                <th className="px-4 py-3"><SortButton label="Priority" active={table.sortKey === "priority"} direction={table.sortKey === "priority" ? table.sortDirection : null} onClick={() => table.sortBy("priority")} /></th>
+                <th className="px-4 py-3"><SortButton label="Status" active={table.sortKey === "status"} direction={table.sortKey === "status" ? table.sortDirection : null} onClick={() => table.sortBy("status")} /></th>
                 <th className="px-4 py-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -128,7 +135,7 @@ export default function Tasks() {
                   </td>
                 </tr>
               )}
-              {filtered.map((task) => {
+              {table.paginatedRows.map((task) => {
                 const student = students.find((entry) => entry.id === task.studentId);
 
                 return (
@@ -161,6 +168,7 @@ export default function Tasks() {
             </tbody>
           </table>
         </div>
+        <Pagination page={table.currentPage} pageCount={table.pageCount} total={filtered.length} pageSize={8} onPageChange={table.setPage} />
       </div>
 
       {showForm && (

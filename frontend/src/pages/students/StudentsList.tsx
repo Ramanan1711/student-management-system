@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
+import { Pagination, SortButton } from "../../components/tables/TableControls";
+import { useTableControls } from "../../hooks/useTableControls";
 
 export default function StudentsList() {
   const { students } = useDataStore();
@@ -21,6 +23,11 @@ export default function StudentsList() {
       return matchesText && matchesMode;
     });
   }, [query, modeFilter, students]);
+
+  const table = useTableControls(filteredStudents, 8, (student, key) => {
+    if (key === "pending") return student.fee.pendingAmount;
+    return student[key as "name" | "course" | "batch" | "mode"];
+  });
 
   return (
     <div data-testid="students-list-page" className="space-y-6">
@@ -63,11 +70,11 @@ export default function StudentsList() {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-4 py-3 font-medium">Student</th>
-                <th className="px-4 py-3 font-medium">Course</th>
-                <th className="px-4 py-3 font-medium">Batch</th>
-                <th className="px-4 py-3 font-medium">Mode</th>
-                <th className="px-4 py-3 font-medium">Fee Pending</th>
+                <th className="px-4 py-3"><SortButton label="Student" active={table.sortKey === "name"} direction={table.sortKey === "name" ? table.sortDirection : null} onClick={() => table.sortBy("name")} /></th>
+                <th className="px-4 py-3"><SortButton label="Course" active={table.sortKey === "course"} direction={table.sortKey === "course" ? table.sortDirection : null} onClick={() => table.sortBy("course")} /></th>
+                <th className="px-4 py-3"><SortButton label="Batch" active={table.sortKey === "batch"} direction={table.sortKey === "batch" ? table.sortDirection : null} onClick={() => table.sortBy("batch")} /></th>
+                <th className="px-4 py-3"><SortButton label="Mode" active={table.sortKey === "mode"} direction={table.sortKey === "mode" ? table.sortDirection : null} onClick={() => table.sortBy("mode")} /></th>
+                <th className="px-4 py-3"><SortButton label="Fee Pending" active={table.sortKey === "pending"} direction={table.sortKey === "pending" ? table.sortDirection : null} onClick={() => table.sortBy("pending")} /></th>
                 <th className="px-4 py-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -79,7 +86,7 @@ export default function StudentsList() {
                   </td>
                 </tr>
               )}
-              {filteredStudents.map((student) => (
+              {table.paginatedRows.map((student) => (
                 <tr
                   key={student.id}
                   data-testid={`student-row-${student.id}`}
@@ -114,6 +121,7 @@ export default function StudentsList() {
             </tbody>
           </table>
         </div>
+        <Pagination page={table.currentPage} pageCount={table.pageCount} total={filteredStudents.length} pageSize={8} onPageChange={table.setPage} />
       </div>
     </div>
   );

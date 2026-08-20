@@ -4,6 +4,8 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { useDataStore } from "../../store/dataStoreContext";
 import { useToast } from "../../components/ui/toastContext";
 import { monthlyProgress } from "../../data/mockData";
+import { Pagination, SortButton } from "../../components/tables/TableControls";
+import { useTableControls } from "../../hooks/useTableControls";
 
 const CHART_DOMAIN: [number, number] = [0, 100];
 const BAR_RADIUS: [number, number, number, number] = [8, 8, 0, 0];
@@ -25,6 +27,15 @@ export default function Reports() {
     () => (batchFilter === "All" ? students : students.filter((s) => s.batch === batchFilter)),
     [students, batchFilter],
   );
+
+  const table = useTableControls(filteredStudents, 8, (student, key) => {
+    if (key === "metric") {
+      if (view === "attendance") return student.attendance.attendancePercentage;
+      if (view === "fee") return student.fee.pendingAmount;
+      return student.performance.overallPerformance;
+    }
+    return student[key as "name" | "batch"];
+  });
 
   const totals = useMemo(() => {
     if (filteredStudents.length === 0) {
@@ -146,15 +157,13 @@ export default function Reports() {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-4 py-3 font-medium">Student</th>
-                <th className="px-4 py-3 font-medium">Batch</th>
-                {view === "attendance" && <th className="px-4 py-3 font-medium">Attendance %</th>}
-                {view === "fee" && <th className="px-4 py-3 font-medium">Fee Pending</th>}
-                {view === "progress" && <th className="px-4 py-3 font-medium">Overall</th>}
+                <th className="px-4 py-3"><SortButton label="Student" active={table.sortKey === "name"} direction={table.sortKey === "name" ? table.sortDirection : null} onClick={() => table.sortBy("name")} /></th>
+                <th className="px-4 py-3"><SortButton label="Batch" active={table.sortKey === "batch"} direction={table.sortKey === "batch" ? table.sortDirection : null} onClick={() => table.sortBy("batch")} /></th>
+                <th className="px-4 py-3"><SortButton label={view === "attendance" ? "Attendance %" : view === "fee" ? "Fee Pending" : "Overall"} active={table.sortKey === "metric"} direction={table.sortKey === "metric" ? table.sortDirection : null} onClick={() => table.sortBy("metric")} /></th>
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((student) => (
+              {table.paginatedRows.map((student) => (
                 <tr key={student.id} data-testid={`reports-row-${student.id}`} className="border-t border-slate-200">
                   <td className="px-4 py-3 font-medium text-slate-900">{student.name}</td>
                   <td className="px-4 py-3 text-slate-600">{student.batch}</td>
@@ -166,6 +175,7 @@ export default function Reports() {
             </tbody>
           </table>
         </div>
+        <Pagination page={table.currentPage} pageCount={table.pageCount} total={filteredStudents.length} pageSize={8} onPageChange={table.setPage} />
       </div>
     </div>
   );
