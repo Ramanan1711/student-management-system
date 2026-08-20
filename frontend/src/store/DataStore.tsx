@@ -67,6 +67,7 @@ const seedNotifications: NotificationItem[] = [
 ];
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
   const [walkins, setWalkins] = useState<WalkinLead[]>(() => loadStored("walkins", seedWalkins));
   const [students, setStudents] = useState<StudentRecord[]>(() => loadStored("students", seedStudents));
   const [batches, setBatches] = useState<BatchRecord[]>(() => loadStored("batches", seedBatches));
@@ -76,6 +77,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [videoRecords] = useState(() => loadStored("videoRecords", seedVideoRecords));
   const [attendanceRecords, setAttendanceRecords] = useState(() => loadStored("attendanceRecords", seedAttendanceRecords));
   const [notifications, setNotifications] = useState<NotificationItem[]>(() => loadStored("notifications", seedNotifications));
+
+  useEffect(() => {
+    const hydrationTask = window.setTimeout(() => setIsLoading(false), 0);
+    return () => window.clearTimeout(hydrationTask);
+  }, []);
 
   useEffect(() => {
     saveStored("walkins", walkins);
@@ -315,7 +321,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataStoreContext.Provider value={value}>
-      {children}
+      {isLoading ? (
+        <main data-testid="app-loading-state" className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4">
+          <div className="text-center">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+            <p className="mt-4 text-sm font-medium text-slate-600">Loading academy data...</p>
+          </div>
+        </main>
+      ) : children}
     </DataStoreContext.Provider>
   );
 }
