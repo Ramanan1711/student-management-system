@@ -11,6 +11,12 @@ const monthlyProgress = [
   { name: "Apr", value: 71 },
   { name: "May", value: 77 },
   { name: "Jun", value: 82 },
+  { name: "Jul", value: 79 },
+  { name: "Aug", value: 84 },
+  { name: "Sep", value: 88 },
+  { name: "Oct", value: 86 },
+  { name: "Nov", value: 91 },
+  { name: "Dec", value: 94 },
 ];
 
 const CHART_DOMAIN: [number, number] = [0, 100];
@@ -131,7 +137,7 @@ export default function Reports() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyProgress}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" stroke="#64748b" />
+              <XAxis dataKey="name" interval={0} stroke="#64748b" />
               <YAxis stroke="#64748b" domain={CHART_DOMAIN} />
               <Tooltip />
               <Bar dataKey="value" fill="#1e293b" radius={BAR_RADIUS} />
