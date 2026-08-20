@@ -3,32 +3,51 @@ import { useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BriefcaseBusiness, ChartColumnBig, TrendingUp, Users } from "lucide-react";
 import { useDataStore } from "../../store/dataStoreContext";
-import { dailyRevenueOverview, revenueOverview } from "../../data/mockData";
-
-const currentDate = new Date();
-const currentMonth = currentDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
-const currentDay = String(currentDate.getDate()).padStart(2, "0");
 
 const AXIS_TICK = { fontSize: 10, fill: "#64748b" };
 const BAR_RADIUS: [number, number, number, number] = [6, 6, 0, 0];
 
 export default function Dashboard() {
-  const { students, walkins, batches, tasks } = useDataStore();
+  const { students, walkins, batches, tasks, feeTransactions } = useDataStore();
   const navigate = useNavigate();
   const [period, setPeriod] = useState<"12 Months" | "6 Months" | "30 Days">("12 Months");
 
-  const chartData = useMemo(
-    () =>
-      period === "12 Months"
-        ? revenueOverview
-        : period === "6 Months"
-        ? revenueOverview.slice(6)
-        : dailyRevenueOverview,
-    [period],
-  );
+  const currentDate = useMemo(() => new Date(), []);
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+
+  const chartData = useMemo(() => {
+    if (period === "30 Days") {
+      return Array.from({ length: 30 }, (_, index) => {
+        const date = new Date(currentDate);
+        date.setDate(currentDate.getDate() - (29 - index));
+        const dateKey = date.toISOString().slice(0, 10);
+        return {
+          month: String(date.getDate()).padStart(2, "0"),
+          value: feeTransactions.filter((transaction) => transaction.date === dateKey).reduce((sum, transaction) => sum + transaction.amount, 0),
+          highlight: dateKey === currentDate.toISOString().slice(0, 10),
+        };
+      });
+    }
+
+    const monthCount = period === "6 Months" ? 6 : 12;
+    return Array.from({ length: monthCount }, (_, index) => {
+      const monthDate = new Date(currentYear, currentMonth - (monthCount - 1 - index), 1);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
+      return {
+        month: monthDate.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+        value: feeTransactions.filter((transaction) => {
+          const paymentDate = new Date(`${transaction.date}T00:00:00`);
+          return paymentDate.getFullYear() === year && paymentDate.getMonth() === month;
+        }).reduce((sum, transaction) => sum + transaction.amount, 0),
+        highlight: year === currentYear && month === currentMonth,
+      };
+    });
+  }, [currentDate, currentMonth, currentYear, feeTransactions, period]);
 
   const totalPending = students.reduce((sum, s) => sum + s.fee.pendingAmount, 0);
-  const totalPaid = students.reduce((sum, s) => sum + s.fee.amountPaid, 0);
+  const totalPaid = feeTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
 
   const stats = [
     {
@@ -118,23 +137,15 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barGap={8}>
               <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={AXIS_TICK} />
-              <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} />
-              <Tooltip />
+              <XAxis dataKey="month" interval={0} tickLine={false} axisLine={false} tick={AXIS_TICK} />
+              <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} tickFormatter={(value) => `₹${Number(value).toLocaleString("en-IN")}`} />
+              <Tooltip formatter={(value) => `₹${Number(value).toLocaleString("en-IN")}`} />
               <Bar dataKey="value" radius={BAR_RADIUS}>
                 {chartData.map((entry) => (
                   <Cell
-                    key={entry.month}
-                    fill={
-                      (period === "30 Days" ? entry.month === currentDay : entry.month === currentMonth)
-                        ? "#6b7f9a"
-                        : "#dfe5ea"
-                    }
-                    opacity={
-                      (period === "30 Days" ? entry.month === currentDay : entry.month === currentMonth)
-                        ? 1
-                        : 0.95
-                    }
+                    key={`${entry.month}-${entry.highlight}`}
+                    fill={entry.highlight ? "#6b7f9a" : "#dfe5ea"}
+                    opacity={entry.highlight ? 1 : 0.95}
                   />
                 ))}
               </Bar>
