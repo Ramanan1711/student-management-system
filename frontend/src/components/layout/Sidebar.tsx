@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
-import { logout as clearAuth } from "../../lib/auth";
+import { getUsername, logout as clearAuth } from "../../lib/auth";
 
 const navigation = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -40,6 +40,9 @@ interface SidebarProps {
 
 export default function Sidebar({ open = true, onClose }: SidebarProps) {
   const navigate = useNavigate();
+  const username = getUsername();
+  const usernameLabel = username.charAt(0).toUpperCase() + username.slice(1);
+  const usernameInitial = username.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     clearAuth();
@@ -116,10 +119,10 @@ export default function Sidebar({ open = true, onClose }: SidebarProps) {
 
           <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-semibold text-slate-700">
-              U
+              {usernameInitial}
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Username</p>
+              <p className="text-sm font-semibold text-white">{usernameLabel}</p>
               <p className="text-[10px] uppercase tracking-[0.22em] text-blue-100/70">Admin</p>
             </div>
           </div>

@@ -25,7 +25,7 @@ export default function Login() {
       return;
     }
 
-    login();
+    login(email);
 
     navigate("/dashboard");
   };
